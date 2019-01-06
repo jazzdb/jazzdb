@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "dist",
+    "lib": [
+      "es5",
+      "es6",
+      "dom"
+    ],
+    "module": "commonjs",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "target": "es5"
+  },
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/*.spec.ts"
+  ]
+}

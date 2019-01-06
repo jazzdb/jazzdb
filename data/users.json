@@ -1,0 +1,38 @@
+[
+  {
+    "id": "31b593f1-e2fc-493d-bbde-6cd1aa7af7ba",
+    "createdAt": 1546774786268,
+    "email": "test-0.05950971659961102@example.com",
+    "password": "password"
+  },
+  {
+    "id": "0f88c85e-2c18-46c8-a61a-22b80de0082e",
+    "createdAt": 1546774786272,
+    "email": "test@example.com",
+    "password": "password"
+  },
+  {
+    "id": "9fbbab8c-8049-4e6f-8982-733a249c6711",
+    "createdAt": 1546774787878,
+    "email": "test-0.6659602003086036@example.com",
+    "password": "password"
+  },
+  {
+    "id": "1e90f030-6888-4291-a18a-151376bb8080",
+    "createdAt": 1546774791005,
+    "email": "test-0.7124612988395884@example.com",
+    "password": "password"
+  },
+  {
+    "id": "04dd169f-bea3-404a-8006-2cd15e4e04d3",
+    "createdAt": 1546774821250,
+    "email": "test-0.12062296743542378@example.com",
+    "password": "password"
+  },
+  {
+    "id": "35157d2e-31a3-4e1f-b94f-e032a524a5a9",
+    "createdAt": 1546782153500,
+    "email": "test-0.5729181439835793@example.com",
+    "password": "password"
+  }
+]
