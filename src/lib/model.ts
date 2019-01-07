@@ -47,7 +47,7 @@ export class Model {
                     Object.keys(item).forEach((attribute) => {
                         const attributeOptions = this.attributes[attribute];
                         const value = item[attribute];
-                        if (attributeOptions.unique && this.items.find(i => i[attribute] === value)) {
+                        if (attributeOptions && attributeOptions.unique && this.items.find(i => i[attribute] === value)) {
                             throw new Error(`${attribute} already exists: ${value}`);
                         }
                     });

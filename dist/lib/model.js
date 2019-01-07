@@ -87,7 +87,7 @@ var Model = /** @class */ (function () {
             Object.keys(item).forEach(function (attribute) {
                 var attributeOptions = _this.attributes[attribute];
                 var value = item[attribute];
-                if (attributeOptions.unique && _this.items.find(function (i) { return i[attribute] === value; })) {
+                if (attributeOptions && attributeOptions.unique && _this.items.find(function (i) { return i[attribute] === value; })) {
                     throw new Error(attribute + " already exists: " + value);
                 }
             });

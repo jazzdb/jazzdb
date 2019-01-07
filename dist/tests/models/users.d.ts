@@ -2,6 +2,7 @@ import { IModel, Model, ModelConfig } from '../../lib/model';
 export interface IUserModel extends IModel {
     email: string;
     password: string;
+    isActive: boolean;
 }
 export declare class UserModel extends Model {
     filter(callbackfn: (value: IUserModel, index: number, array: any[]) => any): IUserModel[];

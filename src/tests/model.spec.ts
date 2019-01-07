@@ -6,12 +6,8 @@ describe('data', () => {
 
     let users: UserModel;
 
-    beforeEach(async () => {
+    before(async () => {
         users = await Users.init();
-    });
-
-    afterEach(async () => {
-        await users.save();
     });
 
     it('should create unique user', async () => {
@@ -19,7 +15,8 @@ describe('data', () => {
 
         users.push({
             email: `test-${Math.random()}@example.com`,
-            password: 'password'
+            password: 'password',
+            isActive: true
         });
 
         assert.strictEqual(users.length, currentLength + 1);
@@ -29,7 +26,8 @@ describe('data', () => {
         try {
             users.push({
                 email: 'test@example.com',
-                password: 'password'
+                password: 'password',
+                isActive: true
             });
 
             assert.fail('should throw error');
@@ -39,10 +37,27 @@ describe('data', () => {
         }
     });
 
-    it('should find a user', async () => {
+    it('should get a user', async () => {
         const user = users.find(u => u.email === 'test@example.com');
 
         assert.strictEqual(user.email, 'test@example.com');
+    });
+
+    it('should find users', async () => {
+        const foundUsers = users.filter(u => u.isActive === true);
+
+        assert.strictEqual(foundUsers.length, 2);
+    });
+
+    it('should update user', async () => {
+        const newEmail = 'test-new-email@example.com';
+
+        const user = users.find(u => u.email === 'test@example.com');
+        user.email = newEmail;
+
+        const updatedUser = users.find(u => u.email === newEmail);
+
+        assert.strictEqual(updatedUser.email, newEmail);
     });
 
     it('should sort users', async () => {
@@ -72,4 +87,5 @@ describe('data', () => {
             users.items
         );
     });
+
 });

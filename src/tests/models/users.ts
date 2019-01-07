@@ -3,6 +3,7 @@ import { IModel, Model, ModelConfig, AttributeTypes } from '../../lib/model';
 export interface IUserModel extends IModel {
     email: string;
     password: string;
+    isActive: boolean;
 }
 
 export class UserModel extends Model {
