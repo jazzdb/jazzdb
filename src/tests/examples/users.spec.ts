@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 
-import { UserModel, Users } from './models/users';
+import { UserModel, Users } from '../../examples/models/users';
 
-describe('data', () => {
+describe('users', () => {
 
     let users: UserModel;
 

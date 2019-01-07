@@ -1,0 +1,7 @@
+{
+  "_id": "00bce127-1bd9-4908-b630-ba079583bab9",
+  "_createdAt": 1546852885560,
+  "email": "test@example.com",
+  "password": "password",
+  "isActive": true
+}

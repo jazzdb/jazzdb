@@ -4,7 +4,10 @@ import * as path from 'path';
 import * as uuid from 'uuid';
 
 export interface IModel {
-    id?: string;
+    _id?: string;
+    _createdAt?: string;
+    _deletedAt?: string;
+    _updatedAt?: string;
 }
 
 export class Model {
@@ -52,8 +55,8 @@ export class Model {
                         }
                     });
                     return {
-                        id: uuid.v4(),
-                        createdAt: new Date().getTime(),
+                        _id: uuid.v4(),
+                        _createdAt: new Date().getTime(),
                         ...item
                     };
                 })
@@ -78,21 +81,18 @@ export class Model {
             throw new Error('Table is not configured.');
         }
 
-        const dir = path.normalize(`./data`);
-
-        const dirExists = fs.existsSync(dir);
-        if (!dirExists) {
-            await fs.mkdirp(dir);
+        for (let i = 0; i < this.items.length; i++) {
+            const dir = path.normalize(`./data/${this.table}`);
+            const dirExists = fs.existsSync(dir);
+            if (!dirExists) {
+                await fs.mkdirp(dir);
+            }
+            
+            const file = path.normalize(`${dir}/${this.items[i]._id}.json`);
+            await fs.writeFile(file, JSON.stringify(this.items[i], null, 2));
         }
 
-        const id = uuid.v4();
-        const file = path.normalize(`${dir}/${this.table}.json`);
-
-        await fs.writeFile(file, JSON.stringify(this.items, null, 2));
-
-        return {
-            id
-        };
+        return {};
     }
 }
 
@@ -128,24 +128,28 @@ export class ModelConfig implements IModelConfigProps {
     }
 
     async init(): Promise<Model> {
-        const dir = path.normalize(`./data`);
+        const model = new Model({
+            attributes: this.attributes,
+            items: [],
+            table: this.table
+        });
+
+        const dir = path.normalize(`./data/${this.table}`);
 
         if (!fs.existsSync(dir)) {
             await fs.mkdirp(dir);
         }
 
-        const file = `${dir}/${this.table}.json`;
+        const items = await fs.readdir(dir);
 
-        const model = new Model({
-            attributes: this.attributes,
-            table: this.table
-        });
-
-        if (!fs.existsSync(file)) {
-            await model.save();
-        } else {
-            model.items = JSON.parse(await fs.readFile(`${dir}/${this.table}.json`, 'utf8'));
-            model.length = model.items.length;
+        for (let i = 0; i < items.length; i++) {
+            const file = path.normalize(`${dir}/${items[i]}`);
+            if (fs.existsSync(file)) {
+                model.items.push(
+                    JSON.parse(await fs.readFile(file, 'utf8'))
+                );
+                model.length = model.items.length;
+            }
         }
 
         return model;

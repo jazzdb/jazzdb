@@ -1,5 +1,8 @@
 export interface IModel {
-    id?: string;
+    _id?: string;
+    _createdAt?: string;
+    _deletedAt?: string;
+    _updatedAt?: string;
 }
 export declare class Model {
     attributes: any;

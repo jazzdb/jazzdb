@@ -91,7 +91,7 @@ var Model = /** @class */ (function () {
                     throw new Error(attribute + " already exists: " + value);
                 }
             });
-            return __assign({ id: uuid.v4(), createdAt: new Date().getTime() }, item);
+            return __assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, item);
         }));
         this.length = this.items.length;
         return count;
@@ -107,29 +107,34 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.save = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var dir, dirExists, id, file;
+            var i, dir, dirExists, file;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!this.table) {
                             throw new Error('Table is not configured.');
                         }
-                        dir = path.normalize("./data");
-                        dirExists = fs.existsSync(dir);
-                        if (!!dirExists) return [3 /*break*/, 2];
-                        return [4 /*yield*/, fs.mkdirp(dir)];
+                        i = 0;
+                        _a.label = 1;
                     case 1:
-                        _a.sent();
-                        _a.label = 2;
+                        if (!(i < this.items.length)) return [3 /*break*/, 6];
+                        dir = path.normalize("./data/" + this.table);
+                        dirExists = fs.existsSync(dir);
+                        if (!!dirExists) return [3 /*break*/, 3];
+                        return [4 /*yield*/, fs.mkdirp(dir)];
                     case 2:
-                        id = uuid.v4();
-                        file = path.normalize(dir + "/" + this.table + ".json");
-                        return [4 /*yield*/, fs.writeFile(file, JSON.stringify(this.items, null, 2))];
-                    case 3:
                         _a.sent();
-                        return [2 /*return*/, {
-                                id: id
-                            }];
+                        _a.label = 3;
+                    case 3:
+                        file = path.normalize(dir + "/" + this.items[i]._id + ".json");
+                        return [4 /*yield*/, fs.writeFile(file, JSON.stringify(this.items[i], null, 2))];
+                    case 4:
+                        _a.sent();
+                        _a.label = 5;
+                    case 5:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 6: return [2 /*return*/, {}];
                 }
             });
         });
@@ -155,36 +160,41 @@ var ModelConfig = /** @class */ (function () {
     }
     ModelConfig.prototype.init = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var dir, file, model, _a, _b, _c;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var model, dir, items, i, file, _a, _b, _c, _d;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
-                        dir = path.normalize("./data");
+                        model = new Model({
+                            attributes: this.attributes,
+                            items: [],
+                            table: this.table
+                        });
+                        dir = path.normalize("./data/" + this.table);
                         if (!!fs.existsSync(dir)) return [3 /*break*/, 2];
                         return [4 /*yield*/, fs.mkdirp(dir)];
                     case 1:
-                        _d.sent();
-                        _d.label = 2;
-                    case 2:
-                        file = dir + "/" + this.table + ".json";
-                        model = new Model({
-                            attributes: this.attributes,
-                            table: this.table
-                        });
-                        if (!!fs.existsSync(file)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, model.save()];
+                        _e.sent();
+                        _e.label = 2;
+                    case 2: return [4 /*yield*/, fs.readdir(dir)];
                     case 3:
-                        _d.sent();
-                        return [3 /*break*/, 6];
+                        items = _e.sent();
+                        i = 0;
+                        _e.label = 4;
                     case 4:
-                        _a = model;
-                        _c = (_b = JSON).parse;
-                        return [4 /*yield*/, fs.readFile(dir + "/" + this.table + ".json", 'utf8')];
+                        if (!(i < items.length)) return [3 /*break*/, 7];
+                        file = path.normalize(dir + "/" + items[i]);
+                        if (!fs.existsSync(file)) return [3 /*break*/, 6];
+                        _b = (_a = model.items).push;
+                        _d = (_c = JSON).parse;
+                        return [4 /*yield*/, fs.readFile(file, 'utf8')];
                     case 5:
-                        _a.items = _c.apply(_b, [_d.sent()]);
+                        _b.apply(_a, [_d.apply(_c, [_e.sent()])]);
                         model.length = model.items.length;
-                        _d.label = 6;
-                    case 6: return [2 /*return*/, model];
+                        _e.label = 6;
+                    case 6:
+                        i++;
+                        return [3 /*break*/, 4];
+                    case 7: return [2 /*return*/, model];
                 }
             });
         });
