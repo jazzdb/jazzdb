@@ -44,7 +44,8 @@ export class Model {
                     const isValid = validate(item);
 
                     if (!isValid) {
-                        throw new Error(validate.errors.toString());
+                        const errorMessage = `"${validate.errors[0].field.replace(/^data\./, '')}" ${validate.errors[0].message}`
+                        throw new Error(errorMessage);
                     }
 
                     Object.keys(item).forEach((attribute) => {

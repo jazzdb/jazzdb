@@ -82,7 +82,8 @@ var Model = /** @class */ (function () {
             });
             var isValid = validate(item);
             if (!isValid) {
-                throw new Error(validate.errors.toString());
+                var errorMessage = "\"" + validate.errors[0].field.replace(/^data\./, '') + "\" " + validate.errors[0].message;
+                throw new Error(errorMessage);
             }
             Object.keys(item).forEach(function (attribute) {
                 var attributeOptions = _this.attributes[attribute];
