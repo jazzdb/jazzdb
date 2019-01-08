@@ -33,6 +33,10 @@ export class Model {
         return this.items.find(callbackfn);
     }
 
+    findIndex(callbackfn: (value: any, index: number, obj: any[]) => any) {
+        return this.items.findIndex(callbackfn);
+    }
+
     push(...items: any[]) {
         const count = this.items
             .push(
@@ -64,6 +68,12 @@ export class Model {
             );
         this.length = this.items.length;
         return count;
+    }
+
+    splice(start: number, deleteCount?: number) {
+        const deletedItems = this.items.splice(start, deleteCount);
+        this.length = this.items.length;
+        return deletedItems;
     }
 
     some(callbackfn: (value: any, index: number, array: any[]) => boolean, thisArg?: any) {

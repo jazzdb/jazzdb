@@ -12,8 +12,14 @@ export class InstrumentModel extends Model {
     find(callbackfn: (value: IInstrumentModel, index: number, obj: any[]) => any): IInstrumentModel {
         return super.find(callbackfn);
     }
+    findIndex(callbackfn: (value: IInstrumentModel, index: number, obj: any[]) => any): number {
+        return super.findIndex(callbackfn);
+    }
     push(...items: IInstrumentModel[]) {
         return super.push(...items);
+    }
+    splice(start: number, deleteCount?: number): IInstrumentModel[] {
+        return super.splice(start, deleteCount);
     }
     sort(compareFn?: (a: IInstrumentModel, b: IInstrumentModel) => number) {
         return [...this.items].sort(compareFn);

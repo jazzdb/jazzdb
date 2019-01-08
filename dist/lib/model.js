@@ -68,6 +68,9 @@ var Model = /** @class */ (function () {
     Model.prototype.find = function (callbackfn) {
         return this.items.find(callbackfn);
     };
+    Model.prototype.findIndex = function (callbackfn) {
+        return this.items.findIndex(callbackfn);
+    };
     Model.prototype.push = function () {
         var _this = this;
         var items = [];
@@ -96,6 +99,11 @@ var Model = /** @class */ (function () {
         }));
         this.length = this.items.length;
         return count;
+    };
+    Model.prototype.splice = function (start, deleteCount) {
+        var deletedItems = this.items.splice(start, deleteCount);
+        this.length = this.items.length;
+        return deletedItems;
     };
     Model.prototype.some = function (callbackfn, thisArg) {
         return this.items.some(callbackfn);

@@ -13,7 +13,9 @@ export declare class Model {
     every(callbackfn: (value: any, index: number, array: any[]) => boolean, thisArg?: any): boolean;
     filter(callbackfn: (value: any, index: number, array: any[]) => any): any[];
     find(callbackfn: (value: any, index: number, obj: any[]) => any): any;
+    findIndex(callbackfn: (value: any, index: number, obj: any[]) => any): number;
     push(...items: any[]): number;
+    splice(start: number, deleteCount?: number): any[];
     some(callbackfn: (value: any, index: number, array: any[]) => boolean, thisArg?: any): boolean;
     sort(compareFn?: (a: any, b: any) => number): any[];
     /**

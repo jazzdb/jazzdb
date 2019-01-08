@@ -86,4 +86,13 @@ describe('instruments', () => {
         );
     });
 
+    it('should delete instrument', async () => {
+        const currentLength = instruments.length;
+
+        const instrumentIndex = instruments.findIndex(u => u.name === 'Trumpet');
+        instruments.splice(instrumentIndex, 1);
+
+        assert.strictEqual(instruments.length, currentLength - 1);
+    });
+
 });

@@ -60,12 +60,18 @@ var InstrumentModel = /** @class */ (function (_super) {
     InstrumentModel.prototype.find = function (callbackfn) {
         return _super.prototype.find.call(this, callbackfn);
     };
+    InstrumentModel.prototype.findIndex = function (callbackfn) {
+        return _super.prototype.findIndex.call(this, callbackfn);
+    };
     InstrumentModel.prototype.push = function () {
         var items = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             items[_i] = arguments[_i];
         }
         return _super.prototype.push.apply(this, items);
+    };
+    InstrumentModel.prototype.splice = function (start, deleteCount) {
+        return _super.prototype.splice.call(this, start, deleteCount);
     };
     InstrumentModel.prototype.sort = function (compareFn) {
         return this.items.slice().sort(compareFn);
