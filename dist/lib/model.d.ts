@@ -14,6 +14,8 @@ export declare class Model {
     filter(callbackfn: (value: any, index: number, array: any[]) => any): any[];
     find(callbackfn: (value: any, index: number, obj: any[]) => any): any;
     findIndex(callbackfn: (value: any, index: number, obj: any[]) => any): number;
+    forEach(callbackfn: (value: any, index: number, array: any[]) => any): void;
+    map(callbackfn: (value: any, index: number, array: any[]) => any): any[];
     push(...items: any[]): number;
     splice(start: number, deleteCount?: number): any[];
     some(callbackfn: (value: any, index: number, array: any[]) => boolean, thisArg?: any): boolean;

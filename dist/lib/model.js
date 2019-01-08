@@ -71,6 +71,12 @@ var Model = /** @class */ (function () {
     Model.prototype.findIndex = function (callbackfn) {
         return this.items.findIndex(callbackfn);
     };
+    Model.prototype.forEach = function (callbackfn) {
+        return this.items.forEach(callbackfn);
+    };
+    Model.prototype.map = function (callbackfn) {
+        return this.items.map(callbackfn);
+    };
     Model.prototype.push = function () {
         var _this = this;
         var items = [];

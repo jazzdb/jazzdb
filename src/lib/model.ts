@@ -37,6 +37,14 @@ export class Model {
         return this.items.findIndex(callbackfn);
     }
 
+    forEach(callbackfn: (value: any, index: number, array: any[]) => any) {
+        return this.items.forEach(callbackfn);
+    }
+
+    map(callbackfn: (value: any, index: number, array: any[]) => any) {
+        return this.items.map(callbackfn);
+    }
+
     push(...items: any[]) {
         const count = this.items
             .push(

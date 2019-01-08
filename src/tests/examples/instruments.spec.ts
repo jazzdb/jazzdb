@@ -89,10 +89,37 @@ describe('instruments', () => {
     it('should delete instrument', async () => {
         const currentLength = instruments.length;
 
-        const instrumentIndex = instruments.findIndex(u => u.name === 'Trumpet');
+        const instrumentIndex = instruments.findIndex(i => i.name === 'Trumpet');
         instruments.splice(instrumentIndex, 1);
 
         assert.strictEqual(instruments.length, currentLength - 1);
+    });
+
+    it('should map instruments from objects to strings', async () => {
+        const mappedInstruments = instruments.map(i => i.name);
+
+        assert.strictEqual(
+            JSON.stringify(mappedInstruments),
+            JSON.stringify(['Trombone', 'Clarinet'])
+        );
+    });
+
+    it('should iterate over instruments', async () => {
+        let counter = 0;
+        
+        instruments.forEach((instrument, index) => {
+            counter += 1;
+
+            if (index === 0) {
+                assert.strictEqual(instrument.name, 'Trombone');
+            } else if (index === 1) {
+                assert.strictEqual(instrument.name, 'Clarinet');
+            } else {
+                assert.fail('should not have more than 2 records');
+            }
+        });
+
+        assert.strictEqual(counter, 2);
     });
 
 });
