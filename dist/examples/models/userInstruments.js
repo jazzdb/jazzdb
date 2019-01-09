@@ -52,52 +52,50 @@ var model_1 = require("../../lib/model");
 var UserInstrumentModel = /** @class */ (function (_super) {
     __extends(UserInstrumentModel, _super);
     function UserInstrumentModel() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.name = 'userInstruments';
+        _this.attributes = {
+            instrumentId: {
+                required: true,
+                unique: true,
+                type: model_1.AttributeTypes.String
+            },
+            userId: {
+                required: true,
+                type: model_1.AttributeTypes.String
+            }
+        };
+        return _this;
     }
-    UserInstrumentModel.prototype.filter = function (callbackfn) {
-        return _super.prototype.filter.call(this, callbackfn);
+    UserInstrumentModel.prototype.load = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, _super.prototype.load.call(this)];
+            });
+        });
     };
-    UserInstrumentModel.prototype.find = function (callbackfn) {
-        return _super.prototype.find.call(this, callbackfn);
+    UserInstrumentModel.prototype.save = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, _super.prototype.save.call(this)];
+            });
+        });
     };
-    UserInstrumentModel.prototype.push = function () {
-        var items = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            items[_i] = arguments[_i];
-        }
-        return _super.prototype.push.apply(this, items);
+    UserInstrumentModel.prototype.create = function (data) {
+        return _super.prototype.create.call(this, data);
     };
-    UserInstrumentModel.prototype.sort = function (compareFn) {
-        return this.items.slice().sort(compareFn);
+    UserInstrumentModel.prototype.delete = function (id) {
+        return _super.prototype.delete.call(this, id);
+    };
+    UserInstrumentModel.prototype.get = function (id) {
+        return _super.prototype.get.call(this, id);
+    };
+    UserInstrumentModel.prototype.toArray = function () {
+        return _super.prototype.toArray.call(this);
+    };
+    UserInstrumentModel.prototype.update = function (id, data) {
+        return _super.prototype.update.call(this, id, data);
     };
     return UserInstrumentModel;
 }(model_1.Model));
 exports.UserInstrumentModel = UserInstrumentModel;
-var UserInstrumentModelConfig = /** @class */ (function (_super) {
-    __extends(UserInstrumentModelConfig, _super);
-    function UserInstrumentModelConfig() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    UserInstrumentModelConfig.prototype.init = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, _super.prototype.init.call(this)];
-            });
-        });
-    };
-    return UserInstrumentModelConfig;
-}(model_1.ModelConfig));
-exports.UserInstruments = new UserInstrumentModelConfig({
-    table: 'userInstruments',
-    attributes: {
-        instrumentId: {
-            required: true,
-            unique: true,
-            type: model_1.AttributeTypes.String
-        },
-        userId: {
-            required: true,
-            type: model_1.AttributeTypes.String
-        }
-    }
-});

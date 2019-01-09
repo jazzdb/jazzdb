@@ -1,4 +1,4 @@
-import { IModel, Model, ModelConfig, AttributeTypes } from '../../lib/model';
+import { IModel, Model, AttributeTypes } from '../../lib/model';
 
 export interface IUserModel extends IModel {
     email: string;
@@ -7,29 +7,8 @@ export interface IUserModel extends IModel {
 }
 
 export class UserModel extends Model {
-    filter(callbackfn: (value: IUserModel, index: number, array: any[]) => any): IUserModel[] {
-        return super.filter(callbackfn);
-    }
-    find(callbackfn: (value: IUserModel, index: number, obj: any[]) => any): IUserModel {
-        return super.find(callbackfn);
-    }
-    push(...items: IUserModel[]) {
-        return super.push(...items);
-    }
-    sort(compareFn?: (a: IUserModel, b: IUserModel) => number) {
-        return [...this.items].sort(compareFn);
-    }
-}
-
-class UserModelConfig extends ModelConfig {
-    async init(): Promise<UserModel> {
-        return super.init();
-    }
-}
-
-export const Users = new UserModelConfig({
-    table: 'users',
-    attributes: {
+    name = 'users';
+    attributes = {
         email: {
             required: true,
             unique: true,
@@ -39,5 +18,26 @@ export const Users = new UserModelConfig({
             required: true,
             type: AttributeTypes.String
         }
+    };
+    async load(): Promise<UserModel> {
+        return super.load();
     }
-});
+    async save(): Promise<UserModel> {
+        return super.save();
+    }
+    create(data: IUserModel): IUserModel {
+        return super.create(data);
+    }
+    delete(id: string): IUserModel {
+        return super.delete(id);
+    }
+    get(id: string): IUserModel {
+        return super.get(id);
+    }
+    toArray(): IUserModel[] {
+        return super.toArray();
+    }
+    update(id: string, data: IUserModel): IUserModel {
+        return super.update(id, data);
+    }
+}

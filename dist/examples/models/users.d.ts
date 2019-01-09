@@ -1,17 +1,27 @@
-import { IModel, Model, ModelConfig } from '../../lib/model';
+import { IModel, Model, AttributeTypes } from '../../lib/model';
 export interface IUserModel extends IModel {
     email: string;
     password: string;
     isActive: boolean;
 }
 export declare class UserModel extends Model {
-    filter(callbackfn: (value: IUserModel, index: number, array: any[]) => any): IUserModel[];
-    find(callbackfn: (value: IUserModel, index: number, obj: any[]) => any): IUserModel;
-    push(...items: IUserModel[]): number;
-    sort(compareFn?: (a: IUserModel, b: IUserModel) => number): any[];
+    name: string;
+    attributes: {
+        email: {
+            required: boolean;
+            unique: boolean;
+            type: AttributeTypes;
+        };
+        password: {
+            required: boolean;
+            type: AttributeTypes;
+        };
+    };
+    load(): Promise<UserModel>;
+    save(): Promise<UserModel>;
+    create(data: IUserModel): IUserModel;
+    delete(id: string): IUserModel;
+    get(id: string): IUserModel;
+    toArray(): IUserModel[];
+    update(id: string, data: IUserModel): IUserModel;
 }
-declare class UserModelConfig extends ModelConfig {
-    init(): Promise<UserModel>;
-}
-export declare const Users: UserModelConfig;
-export {};

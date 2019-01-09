@@ -1,4 +1,4 @@
-import { IModel, Model, ModelConfig, AttributeTypes } from '../../lib/model';
+import { IModel, Model, AttributeTypes } from '../../lib/model';
 
 export interface IUserInstrumentModel extends IModel {
     instrumentId: string;
@@ -6,29 +6,8 @@ export interface IUserInstrumentModel extends IModel {
 }
 
 export class UserInstrumentModel extends Model {
-    filter(callbackfn: (value: IUserInstrumentModel, index: number, array: any[]) => any): IUserInstrumentModel[] {
-        return super.filter(callbackfn);
-    }
-    find(callbackfn: (value: IUserInstrumentModel, index: number, obj: any[]) => any): IUserInstrumentModel {
-        return super.find(callbackfn);
-    }
-    push(...items: IUserInstrumentModel[]) {
-        return super.push(...items);
-    }
-    sort(compareFn?: (a: IUserInstrumentModel, b: IUserInstrumentModel) => number) {
-        return [...this.items].sort(compareFn);
-    }
-}
-
-class UserInstrumentModelConfig extends ModelConfig {
-    async init(): Promise<UserInstrumentModel> {
-        return super.init();
-    }
-}
-
-export const UserInstruments = new UserInstrumentModelConfig({
-    table: 'userInstruments',
-    attributes: {
+    name = 'userInstruments';
+    attributes = {
         instrumentId: {
             required: true,
             unique: true,
@@ -38,5 +17,26 @@ export const UserInstruments = new UserInstrumentModelConfig({
             required: true,
             type: AttributeTypes.String
         }
+    };
+    async load(): Promise<UserInstrumentModel> {
+        return super.load();
     }
-});
+    async save(): Promise<UserInstrumentModel> {
+        return super.save();
+    }
+    create(data: IUserInstrumentModel): IUserInstrumentModel {
+        return super.create(data);
+    }
+    delete(id: string): IUserInstrumentModel {
+        return super.delete(id);
+    }
+    get(id: string): IUserInstrumentModel {
+        return super.get(id);
+    }
+    toArray(): IUserInstrumentModel[] {
+        return super.toArray();
+    }
+    update(id: string, data: IUserInstrumentModel): IUserInstrumentModel {
+        return super.update(id, data);
+    }
+}

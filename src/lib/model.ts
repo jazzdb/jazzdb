@@ -11,149 +11,32 @@ export interface IModel {
 }
 
 export class Model {
-    attributes: any = {};
-    items: any[] = [];
-    length = 0;
-    table: string = '';
 
-    constructor(props: any) {
-        this.attributes = props.attributes;
-        this.table = props.table;
-    }
-
-    every(callbackfn: (value: any, index: number, array: any[]) => boolean, thisArg?: any) {
-        return this.items.every(callbackfn);
-    }
-    
-    filter(callbackfn: (value: any, index: number, array: any[]) => any) {
-        return this.items.filter(callbackfn);
-    }
-
-    find(callbackfn: (value: any, index: number, obj: any[]) => any) {
-        return this.items.find(callbackfn);
-    }
-
-    findIndex(callbackfn: (value: any, index: number, obj: any[]) => any) {
-        return this.items.findIndex(callbackfn);
-    }
-
-    forEach(callbackfn: (value: any, index: number, array: any[]) => any) {
-        return this.items.forEach(callbackfn);
-    }
-
-    map(callbackfn: (value: any, index: number, array: any[]) => any) {
-        return this.items.map(callbackfn);
-    }
-
-    push(...items: any[]) {
-        const count = this.items
-            .push(
-                ...items.map((item) => {
-                    var validate = validator({
-                        type: 'object',
-                        properties: this.attributes
-                    });
-                    const isValid = validate(item);
-
-                    if (!isValid) {
-                        const errorMessage = `"${validate.errors[0].field.replace(/^data\./, '')}" ${validate.errors[0].message}`
-                        throw new Error(errorMessage);
-                    }
-
-                    Object.keys(item).forEach((attribute) => {
-                        const attributeOptions = this.attributes[attribute];
-                        const value = item[attribute];
-                        if (attributeOptions && attributeOptions.unique && this.items.find(i => i[attribute].toLowerCase() === value.toLowerCase())) {
-                            throw new Error(`${attribute} already exists: ${value}`);
-                        }
-                    });
-                    return {
-                        _id: uuid.v4(),
-                        _createdAt: new Date().getTime(),
-                        ...item
-                    };
-                })
-            );
-        this.length = this.items.length;
-        return count;
-    }
-
-    splice(start: number, deleteCount?: number) {
-        const deletedItems = this.items.splice(start, deleteCount);
-        this.length = this.items.length;
-        return deletedItems;
-    }
-
-    some(callbackfn: (value: any, index: number, array: any[]) => boolean, thisArg?: any) {
-        return this.items.some(callbackfn);
-    }
-
-    sort(compareFn?: (a: any, b: any) => number) {
-        return [...this.items].sort(compareFn);
-    }
-
-    /**
-     * save an entity
-     */
-    async save(): Promise<any> {
-        if (!this.table) {
-            throw new Error('Table is not configured.');
+    attributes: any = {
+        _id: {
+            required: true,
+            unique: true,
+            type: AttributeTypes.String
+        },
+        _createdAt: {
+            type: AttributeTypes.String
+        },
+        _deletedAt: {
+            type: AttributeTypes.String
+        },
+        _updatedAt: {
+            type: AttributeTypes.String
         }
-
-        for (let i = 0; i < this.items.length; i++) {
-            const dir = path.normalize(`./data/${this.table}`);
-            const dirExists = fs.existsSync(dir);
-            if (!dirExists) {
-                await fs.mkdirp(dir);
-            }
-            
-            const file = path.normalize(`${dir}/${this.items[i]._id}.json`);
-            await fs.writeFile(file, JSON.stringify(this.items[i], null, 2));
-        }
-
-        return {};
-    }
-}
-
-interface IAttribute {
-    required?: boolean;
-    unique?: boolean;
-    type: AttributeTypes;
-}
-
-export enum AttributeTypes {
-    Boolean = 'boolean',
-    String = 'string'
-}
-
-interface IModelConfigProps {
-    attributes: {
-        [key: string]: IAttribute
     };
-    table: string;
-}
-
-export class ModelConfig implements IModelConfigProps {
-    attributes = {};
-    table = '';
+    items: any = {};
+    length = 0;
+    name = '';
 
     /**
-     * create an entity
-     * @param props
+     * load model
      */
-    constructor(props: IModelConfigProps) {
-        this.attributes = props.attributes;
-        this.table = props.table;
-    }
-
-    async init(): Promise<Model> {
-        const model = new Model({
-            attributes: this.attributes,
-            items: [],
-            table: this.table
-        });
-
-        const dir = path.normalize(`./data/${this.table}`);
+    async load(): Promise<Model> {
+        const dir = path.normalize(`./data/${this.name}`);
 
         if (!fs.existsSync(dir)) {
             await fs.mkdirp(dir);
@@ -164,13 +47,129 @@ export class ModelConfig implements IModelConfigProps {
         for (let i = 0; i < items.length; i++) {
             const file = path.normalize(`${dir}/${items[i]}`);
             if (fs.existsSync(file)) {
-                model.items.push(
-                    JSON.parse(await fs.readFile(file, 'utf8'))
-                );
-                model.length = model.items.length;
+                const item = JSON.parse(await fs.readFile(file, 'utf8'));
+                this.items[item._id] = item;
+                this.length = Object.keys(this.items).length;
             }
         }
 
-        return model;
+        return this;
     }
+
+    /**
+     * save model
+     */
+    async save(): Promise<Model> {
+        if (!this.name) {
+            throw new Error('Table is not configured.');
+        }
+
+        const items = this.toArray();
+
+        for (let i = 0; i < items.length; i++) {
+            const dir = path.normalize(`./data/${this.name}`);
+            const dirExists = fs.existsSync(dir);
+            if (!dirExists) {
+                await fs.mkdirp(dir);
+            }
+            
+            const file = path.normalize(`${dir}/${items[i]._id}.json`);
+            await fs.writeFile(file, JSON.stringify(items[i], null, 2));
+        }
+
+        return this;
+    }
+
+    /**
+     * create a record
+     * @param data the record data
+     */
+    create(data: any) {
+        var validate = validator({
+            type: 'object',
+            properties: this.attributes
+        });
+        const isValid = validate(data);
+
+        if (!isValid) {
+            const errorMessage = `"${validate.errors[0].field.replace(/^data\./, '')}" ${validate.errors[0].message}`
+            throw new Error(errorMessage);
+        }
+
+        Object.keys(this.attributes).forEach((attributeName) => {
+            const attribute = this.attributes[attributeName];
+            const newValue = data[attributeName];
+            const item = this.toArray().find((i: any) => {
+                const existingValue = i[attributeName];
+                if (existingValue !== undefined && newValue !== undefined && existingValue.toLowerCase() === newValue.toLowerCase()) {
+                    return true;
+                }
+            });
+            if (attribute.unique && item) {
+                throw new Error(`${attributeName} already exists: ${newValue}`);
+            }    
+        });
+
+        const item = {
+            _id: uuid.v4(),
+            _createdAt: new Date().getTime(),
+            ...data
+        };
+
+        this.items[item._id] = item;
+
+        this.length = Object.keys(this.items).length;
+
+        return item;
+    }
+
+    /**
+     * delete a record
+     * @param id the record id
+     */
+    delete(id: string) {
+        const element = this.items[id];
+
+        delete this.items[id];
+
+        this.length = Object.keys(this.items).length;
+
+        return element;
+    }
+
+    /**
+     * get a record
+     * @param id the record id
+     */
+    get(id: string) {
+        return this.items[id];
+    }
+
+    /**
+     * convert the records to an array
+     */
+    toArray() {
+        const array: any[] = [];
+        Object.keys(this.items).forEach((id) => {
+            array.push(this.items[id]);
+        });
+        return array;
+    }
+
+    /**
+     * update a record
+     * @param id the record id
+     * @param data the record data
+     */
+    update(id: string, data: any) {
+        this.items[id] = data;
+        return this.items[id];
+    }
+
+}
+
+export enum AttributeTypes {
+    Boolean = 'boolean',
+    Number = 'number',
+    String = 'string'
 }

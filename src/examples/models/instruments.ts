@@ -1,4 +1,4 @@
-import { IModel, Model, ModelConfig, AttributeTypes } from '../../lib/model';
+import { IModel, Model, AttributeTypes } from '../../lib/model';
 
 export interface IInstrumentModel extends IModel {
     name: string;
@@ -6,41 +6,8 @@ export interface IInstrumentModel extends IModel {
 }
 
 export class InstrumentModel extends Model {
-    filter(callbackfn: (value: IInstrumentModel, index: number, array: IInstrumentModel[]) => any): IInstrumentModel[] {
-        return super.filter(callbackfn);
-    }
-    find(callbackfn: (value: IInstrumentModel, index: number, obj: IInstrumentModel[]) => any): IInstrumentModel {
-        return super.find(callbackfn);
-    }
-    findIndex(callbackfn: (value: IInstrumentModel, index: number, obj: IInstrumentModel[]) => any): number {
-        return super.findIndex(callbackfn);
-    }
-    forEach(callbackfn: (value: IInstrumentModel, index: number, array: IInstrumentModel[]) => void): void {
-        return super.forEach(callbackfn);
-    }
-    map(callbackfn: (value: IInstrumentModel, index: number, array: IInstrumentModel[]) => any): IInstrumentModel[] {
-        return super.map(callbackfn);
-    }
-    push(...items: IInstrumentModel[]) {
-        return super.push(...items);
-    }
-    splice(start: number, deleteCount?: number): IInstrumentModel[] {
-        return super.splice(start, deleteCount);
-    }
-    sort(compareFn?: (a: IInstrumentModel, b: IInstrumentModel) => number) {
-        return [...this.items].sort(compareFn);
-    }
-}
-
-class InstrumentModelConfig extends ModelConfig {
-    async init(): Promise<InstrumentModel> {
-        return super.init();
-    }
-}
-
-export const Instruments = new InstrumentModelConfig({
-    table: 'instruments',
-    attributes: {
+    name = 'instruments';
+    attributes = {
         name: {
             required: true,
             unique: true,
@@ -50,5 +17,26 @@ export const Instruments = new InstrumentModelConfig({
             required: true,
             type: AttributeTypes.String
         }
+    };
+    async load(): Promise<InstrumentModel> {
+        return super.load();
     }
-});
+    async save(): Promise<InstrumentModel> {
+        return super.save();
+    }
+    create(data: IInstrumentModel): IInstrumentModel {
+        return super.create(data);
+    }
+    delete(id: string): IInstrumentModel {
+        return super.delete(id);
+    }
+    get(id: string): IInstrumentModel {
+        return super.get(id);
+    }
+    toArray(): IInstrumentModel[] {
+        return super.toArray();
+    }
+    update(id: string, data: IInstrumentModel): IInstrumentModel {
+        return super.update(id, data);
+    }
+}

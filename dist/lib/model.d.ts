@@ -6,48 +6,45 @@ export interface IModel {
 }
 export declare class Model {
     attributes: any;
-    items: any[];
+    items: any;
     length: number;
-    table: string;
-    constructor(props: any);
-    every(callbackfn: (value: any, index: number, array: any[]) => boolean, thisArg?: any): boolean;
-    filter(callbackfn: (value: any, index: number, array: any[]) => any): any[];
-    find(callbackfn: (value: any, index: number, obj: any[]) => any): any;
-    findIndex(callbackfn: (value: any, index: number, obj: any[]) => any): number;
-    forEach(callbackfn: (value: any, index: number, array: any[]) => any): void;
-    map(callbackfn: (value: any, index: number, array: any[]) => any): any[];
-    push(...items: any[]): number;
-    splice(start: number, deleteCount?: number): any[];
-    some(callbackfn: (value: any, index: number, array: any[]) => boolean, thisArg?: any): boolean;
-    sort(compareFn?: (a: any, b: any) => number): any[];
+    name: string;
     /**
-     * save an entity
+     * load model
      */
-    save(): Promise<any>;
-}
-interface IAttribute {
-    required?: boolean;
-    unique?: boolean;
-    type: AttributeTypes;
+    load(): Promise<Model>;
+    /**
+     * save model
+     */
+    save(): Promise<Model>;
+    /**
+     * create a record
+     * @param data the record data
+     */
+    create(data: any): any;
+    /**
+     * delete a record
+     * @param id the record id
+     */
+    delete(id: string): any;
+    /**
+     * get a record
+     * @param id the record id
+     */
+    get(id: string): any;
+    /**
+     * convert the records to an array
+     */
+    toArray(): any[];
+    /**
+     * update a record
+     * @param id the record id
+     * @param data the record data
+     */
+    update(id: string, data: any): any;
 }
 export declare enum AttributeTypes {
     Boolean = "boolean",
+    Number = "number",
     String = "string"
 }
-interface IModelConfigProps {
-    attributes: {
-        [key: string]: IAttribute;
-    };
-    table: string;
-}
-export declare class ModelConfig implements IModelConfigProps {
-    attributes: {};
-    table: string;
-    /**
-     * create an entity
-     * @param props
-     */
-    constructor(props: IModelConfigProps);
-    init(): Promise<Model>;
-}
-export {};

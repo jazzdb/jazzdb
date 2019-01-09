@@ -1,32 +1,36 @@
 import * as assert from 'assert';
 
-import { InstrumentModel, Instruments } from '../../examples/models/instruments';
-import { UserInstrumentModel, UserInstruments } from '../../examples/models/userInstruments';
+import { InstrumentModel } from '../../examples/models/instruments';
+import { UserInstrumentModel } from '../../examples/models/userInstruments';
+
+interface IData {
+    instruments?: InstrumentModel;
+    userInstruments?: UserInstrumentModel;
+}
 
 describe('user instruments', () => {
 
-    let instruments: InstrumentModel;
-    let userInstruments: UserInstrumentModel;
+    const data: IData = {};
 
     before(async () => {
-        instruments = await Instruments.init();
-        userInstruments = await UserInstruments.init();
+        data.instruments = await new InstrumentModel().load();
+        data.userInstruments = await new UserInstrumentModel().load();
     });
 
     it('should associate instrument with user', async () => {
-        const currentLength = userInstruments.length;
+        const currentLength = data.userInstruments.length;
 
-        userInstruments.push({
+        data.userInstruments.create({
             userId: '00bce127-1bd9-4908-b630-ba079583bab9',
             instrumentId: '8d961961-6323-48b3-b4b4-849daa1ac3ed'
         });
 
-        assert.strictEqual(userInstruments.length, currentLength + 1);
+        assert.strictEqual(data.userInstruments.length, currentLength + 1);
     });
 
     it('should get user instruments', async () => {
-        const myInstruments = userInstruments.filter(i => i.userId === '00bce127-1bd9-4908-b630-ba079583bab9')
-            .map(ui => instruments.find(i => i._id === ui.instrumentId))
+        const myInstruments = data.userInstruments.toArray().filter(i => i.userId === '00bce127-1bd9-4908-b630-ba079583bab9')
+            .map(ui => data.instruments.toArray().find(i => i._id === ui.instrumentId))
             .map(ui => {
                 delete ui._createdAt;
                 return ui;

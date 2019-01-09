@@ -51,89 +51,84 @@ var validator = require("is-my-json-valid");
 var path = require("path");
 var uuid = require("uuid");
 var Model = /** @class */ (function () {
-    function Model(props) {
-        this.attributes = {};
-        this.items = [];
-        this.length = 0;
-        this.table = '';
-        this.attributes = props.attributes;
-        this.table = props.table;
-    }
-    Model.prototype.every = function (callbackfn, thisArg) {
-        return this.items.every(callbackfn);
-    };
-    Model.prototype.filter = function (callbackfn) {
-        return this.items.filter(callbackfn);
-    };
-    Model.prototype.find = function (callbackfn) {
-        return this.items.find(callbackfn);
-    };
-    Model.prototype.findIndex = function (callbackfn) {
-        return this.items.findIndex(callbackfn);
-    };
-    Model.prototype.forEach = function (callbackfn) {
-        return this.items.forEach(callbackfn);
-    };
-    Model.prototype.map = function (callbackfn) {
-        return this.items.map(callbackfn);
-    };
-    Model.prototype.push = function () {
-        var _this = this;
-        var items = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            items[_i] = arguments[_i];
-        }
-        var _a;
-        var count = (_a = this.items).push.apply(_a, items.map(function (item) {
-            var validate = validator({
-                type: 'object',
-                properties: _this.attributes
-            });
-            var isValid = validate(item);
-            if (!isValid) {
-                var errorMessage = "\"" + validate.errors[0].field.replace(/^data\./, '') + "\" " + validate.errors[0].message;
-                throw new Error(errorMessage);
+    function Model() {
+        this.attributes = {
+            _id: {
+                required: true,
+                unique: true,
+                type: AttributeTypes.String
+            },
+            _createdAt: {
+                type: AttributeTypes.String
+            },
+            _deletedAt: {
+                type: AttributeTypes.String
+            },
+            _updatedAt: {
+                type: AttributeTypes.String
             }
-            Object.keys(item).forEach(function (attribute) {
-                var attributeOptions = _this.attributes[attribute];
-                var value = item[attribute];
-                if (attributeOptions && attributeOptions.unique && _this.items.find(function (i) { return i[attribute].toLowerCase() === value.toLowerCase(); })) {
-                    throw new Error(attribute + " already exists: " + value);
+        };
+        this.items = {};
+        this.length = 0;
+        this.name = '';
+    }
+    /**
+     * load model
+     */
+    Model.prototype.load = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var dir, items, i, file, item, _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        dir = path.normalize("./data/" + this.name);
+                        if (!!fs.existsSync(dir)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, fs.mkdirp(dir)];
+                    case 1:
+                        _c.sent();
+                        _c.label = 2;
+                    case 2: return [4 /*yield*/, fs.readdir(dir)];
+                    case 3:
+                        items = _c.sent();
+                        i = 0;
+                        _c.label = 4;
+                    case 4:
+                        if (!(i < items.length)) return [3 /*break*/, 7];
+                        file = path.normalize(dir + "/" + items[i]);
+                        if (!fs.existsSync(file)) return [3 /*break*/, 6];
+                        _b = (_a = JSON).parse;
+                        return [4 /*yield*/, fs.readFile(file, 'utf8')];
+                    case 5:
+                        item = _b.apply(_a, [_c.sent()]);
+                        this.items[item._id] = item;
+                        this.length = Object.keys(this.items).length;
+                        _c.label = 6;
+                    case 6:
+                        i++;
+                        return [3 /*break*/, 4];
+                    case 7: return [2 /*return*/, this];
                 }
             });
-            return __assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, item);
-        }));
-        this.length = this.items.length;
-        return count;
-    };
-    Model.prototype.splice = function (start, deleteCount) {
-        var deletedItems = this.items.splice(start, deleteCount);
-        this.length = this.items.length;
-        return deletedItems;
-    };
-    Model.prototype.some = function (callbackfn, thisArg) {
-        return this.items.some(callbackfn);
-    };
-    Model.prototype.sort = function (compareFn) {
-        return this.items.slice().sort(compareFn);
+        });
     };
     /**
-     * save an entity
+     * save model
      */
     Model.prototype.save = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var i, dir, dirExists, file;
+            var items, i, dir, dirExists, file;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!this.table) {
+                        if (!this.name) {
                             throw new Error('Table is not configured.');
                         }
+                        items = this.toArray();
                         i = 0;
                         _a.label = 1;
                     case 1:
-                        if (!(i < this.items.length)) return [3 /*break*/, 6];
-                        dir = path.normalize("./data/" + this.table);
+                        if (!(i < items.length)) return [3 /*break*/, 6];
+                        dir = path.normalize("./data/" + this.name);
                         dirExists = fs.existsSync(dir);
                         if (!!dirExists) return [3 /*break*/, 3];
                         return [4 /*yield*/, fs.mkdirp(dir)];
@@ -141,18 +136,88 @@ var Model = /** @class */ (function () {
                         _a.sent();
                         _a.label = 3;
                     case 3:
-                        file = path.normalize(dir + "/" + this.items[i]._id + ".json");
-                        return [4 /*yield*/, fs.writeFile(file, JSON.stringify(this.items[i], null, 2))];
+                        file = path.normalize(dir + "/" + items[i]._id + ".json");
+                        return [4 /*yield*/, fs.writeFile(file, JSON.stringify(items[i], null, 2))];
                     case 4:
                         _a.sent();
                         _a.label = 5;
                     case 5:
                         i++;
                         return [3 /*break*/, 1];
-                    case 6: return [2 /*return*/, {}];
+                    case 6: return [2 /*return*/, this];
                 }
             });
         });
+    };
+    /**
+     * create a record
+     * @param data the record data
+     */
+    Model.prototype.create = function (data) {
+        var _this = this;
+        var validate = validator({
+            type: 'object',
+            properties: this.attributes
+        });
+        var isValid = validate(data);
+        if (!isValid) {
+            var errorMessage = "\"" + validate.errors[0].field.replace(/^data\./, '') + "\" " + validate.errors[0].message;
+            throw new Error(errorMessage);
+        }
+        Object.keys(this.attributes).forEach(function (attributeName) {
+            var attribute = _this.attributes[attributeName];
+            var newValue = data[attributeName];
+            var item = _this.toArray().find(function (i) {
+                var existingValue = i[attributeName];
+                if (existingValue !== undefined && newValue !== undefined && existingValue.toLowerCase() === newValue.toLowerCase()) {
+                    return true;
+                }
+            });
+            if (attribute.unique && item) {
+                throw new Error(attributeName + " already exists: " + newValue);
+            }
+        });
+        var item = __assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, data);
+        this.items[item._id] = item;
+        this.length = Object.keys(this.items).length;
+        return item;
+    };
+    /**
+     * delete a record
+     * @param id the record id
+     */
+    Model.prototype.delete = function (id) {
+        var element = this.items[id];
+        delete this.items[id];
+        this.length = Object.keys(this.items).length;
+        return element;
+    };
+    /**
+     * get a record
+     * @param id the record id
+     */
+    Model.prototype.get = function (id) {
+        return this.items[id];
+    };
+    /**
+     * convert the records to an array
+     */
+    Model.prototype.toArray = function () {
+        var _this = this;
+        var array = [];
+        Object.keys(this.items).forEach(function (id) {
+            array.push(_this.items[id]);
+        });
+        return array;
+    };
+    /**
+     * update a record
+     * @param id the record id
+     * @param data the record data
+     */
+    Model.prototype.update = function (id, data) {
+        this.items[id] = data;
+        return this.items[id];
     };
     return Model;
 }());
@@ -160,60 +225,6 @@ exports.Model = Model;
 var AttributeTypes;
 (function (AttributeTypes) {
     AttributeTypes["Boolean"] = "boolean";
+    AttributeTypes["Number"] = "number";
     AttributeTypes["String"] = "string";
 })(AttributeTypes = exports.AttributeTypes || (exports.AttributeTypes = {}));
-var ModelConfig = /** @class */ (function () {
-    /**
-     * create an entity
-     * @param props
-     */
-    function ModelConfig(props) {
-        this.attributes = {};
-        this.table = '';
-        this.attributes = props.attributes;
-        this.table = props.table;
-    }
-    ModelConfig.prototype.init = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var model, dir, items, i, file, _a, _b, _c, _d;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
-                    case 0:
-                        model = new Model({
-                            attributes: this.attributes,
-                            items: [],
-                            table: this.table
-                        });
-                        dir = path.normalize("./data/" + this.table);
-                        if (!!fs.existsSync(dir)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, fs.mkdirp(dir)];
-                    case 1:
-                        _e.sent();
-                        _e.label = 2;
-                    case 2: return [4 /*yield*/, fs.readdir(dir)];
-                    case 3:
-                        items = _e.sent();
-                        i = 0;
-                        _e.label = 4;
-                    case 4:
-                        if (!(i < items.length)) return [3 /*break*/, 7];
-                        file = path.normalize(dir + "/" + items[i]);
-                        if (!fs.existsSync(file)) return [3 /*break*/, 6];
-                        _b = (_a = model.items).push;
-                        _d = (_c = JSON).parse;
-                        return [4 /*yield*/, fs.readFile(file, 'utf8')];
-                    case 5:
-                        _b.apply(_a, [_d.apply(_c, [_e.sent()])]);
-                        model.length = model.items.length;
-                        _e.label = 6;
-                    case 6:
-                        i++;
-                        return [3 /*break*/, 4];
-                    case 7: return [2 /*return*/, model];
-                }
-            });
-        });
-    };
-    return ModelConfig;
-}());
-exports.ModelConfig = ModelConfig;

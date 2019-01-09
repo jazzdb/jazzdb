@@ -52,64 +52,50 @@ var model_1 = require("../../lib/model");
 var InstrumentModel = /** @class */ (function (_super) {
     __extends(InstrumentModel, _super);
     function InstrumentModel() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.name = 'instruments';
+        _this.attributes = {
+            name: {
+                required: true,
+                unique: true,
+                type: model_1.AttributeTypes.String
+            },
+            type: {
+                required: true,
+                type: model_1.AttributeTypes.String
+            }
+        };
+        return _this;
     }
-    InstrumentModel.prototype.filter = function (callbackfn) {
-        return _super.prototype.filter.call(this, callbackfn);
+    InstrumentModel.prototype.load = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, _super.prototype.load.call(this)];
+            });
+        });
     };
-    InstrumentModel.prototype.find = function (callbackfn) {
-        return _super.prototype.find.call(this, callbackfn);
+    InstrumentModel.prototype.save = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, _super.prototype.save.call(this)];
+            });
+        });
     };
-    InstrumentModel.prototype.findIndex = function (callbackfn) {
-        return _super.prototype.findIndex.call(this, callbackfn);
+    InstrumentModel.prototype.create = function (data) {
+        return _super.prototype.create.call(this, data);
     };
-    InstrumentModel.prototype.forEach = function (callbackfn) {
-        return _super.prototype.forEach.call(this, callbackfn);
+    InstrumentModel.prototype.delete = function (id) {
+        return _super.prototype.delete.call(this, id);
     };
-    InstrumentModel.prototype.map = function (callbackfn) {
-        return _super.prototype.map.call(this, callbackfn);
+    InstrumentModel.prototype.get = function (id) {
+        return _super.prototype.get.call(this, id);
     };
-    InstrumentModel.prototype.push = function () {
-        var items = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            items[_i] = arguments[_i];
-        }
-        return _super.prototype.push.apply(this, items);
+    InstrumentModel.prototype.toArray = function () {
+        return _super.prototype.toArray.call(this);
     };
-    InstrumentModel.prototype.splice = function (start, deleteCount) {
-        return _super.prototype.splice.call(this, start, deleteCount);
-    };
-    InstrumentModel.prototype.sort = function (compareFn) {
-        return this.items.slice().sort(compareFn);
+    InstrumentModel.prototype.update = function (id, data) {
+        return _super.prototype.update.call(this, id, data);
     };
     return InstrumentModel;
 }(model_1.Model));
 exports.InstrumentModel = InstrumentModel;
-var InstrumentModelConfig = /** @class */ (function (_super) {
-    __extends(InstrumentModelConfig, _super);
-    function InstrumentModelConfig() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    InstrumentModelConfig.prototype.init = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, _super.prototype.init.call(this)];
-            });
-        });
-    };
-    return InstrumentModelConfig;
-}(model_1.ModelConfig));
-exports.Instruments = new InstrumentModelConfig({
-    table: 'instruments',
-    attributes: {
-        name: {
-            required: true,
-            unique: true,
-            type: model_1.AttributeTypes.String
-        },
-        type: {
-            required: true,
-            type: model_1.AttributeTypes.String
-        }
-    }
-});

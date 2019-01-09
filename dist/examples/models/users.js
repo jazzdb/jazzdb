@@ -52,52 +52,50 @@ var model_1 = require("../../lib/model");
 var UserModel = /** @class */ (function (_super) {
     __extends(UserModel, _super);
     function UserModel() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.name = 'users';
+        _this.attributes = {
+            email: {
+                required: true,
+                unique: true,
+                type: model_1.AttributeTypes.String
+            },
+            password: {
+                required: true,
+                type: model_1.AttributeTypes.String
+            }
+        };
+        return _this;
     }
-    UserModel.prototype.filter = function (callbackfn) {
-        return _super.prototype.filter.call(this, callbackfn);
+    UserModel.prototype.load = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, _super.prototype.load.call(this)];
+            });
+        });
     };
-    UserModel.prototype.find = function (callbackfn) {
-        return _super.prototype.find.call(this, callbackfn);
+    UserModel.prototype.save = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, _super.prototype.save.call(this)];
+            });
+        });
     };
-    UserModel.prototype.push = function () {
-        var items = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            items[_i] = arguments[_i];
-        }
-        return _super.prototype.push.apply(this, items);
+    UserModel.prototype.create = function (data) {
+        return _super.prototype.create.call(this, data);
     };
-    UserModel.prototype.sort = function (compareFn) {
-        return this.items.slice().sort(compareFn);
+    UserModel.prototype.delete = function (id) {
+        return _super.prototype.delete.call(this, id);
+    };
+    UserModel.prototype.get = function (id) {
+        return _super.prototype.get.call(this, id);
+    };
+    UserModel.prototype.toArray = function () {
+        return _super.prototype.toArray.call(this);
+    };
+    UserModel.prototype.update = function (id, data) {
+        return _super.prototype.update.call(this, id, data);
     };
     return UserModel;
 }(model_1.Model));
 exports.UserModel = UserModel;
-var UserModelConfig = /** @class */ (function (_super) {
-    __extends(UserModelConfig, _super);
-    function UserModelConfig() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    UserModelConfig.prototype.init = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, _super.prototype.init.call(this)];
-            });
-        });
-    };
-    return UserModelConfig;
-}(model_1.ModelConfig));
-exports.Users = new UserModelConfig({
-    table: 'users',
-    attributes: {
-        email: {
-            required: true,
-            unique: true,
-            type: model_1.AttributeTypes.String
-        },
-        password: {
-            required: true,
-            type: model_1.AttributeTypes.String
-        }
-    }
-});

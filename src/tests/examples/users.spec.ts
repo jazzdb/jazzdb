@@ -1,30 +1,34 @@
 import * as assert from 'assert';
 
-import { UserModel, Users } from '../../examples/models/users';
+import { UserModel } from '../../examples/models/users';
+
+interface IData {
+    users?: UserModel
+}
 
 describe('users', () => {
 
-    let users: UserModel;
+    const data: IData = {};
 
     before(async () => {
-        users = await Users.init();
+        data.users = await new UserModel().load();
     });
 
     it('should create unique user', async () => {
-        const currentLength = users.length;
+        const currentLength = data.users.length;
 
-        users.push({
+        data.users.create({
             email: `test-${Math.random()}@example.com`,
             password: 'password',
             isActive: true
         });
 
-        assert.strictEqual(users.length, currentLength + 1);
+        assert.strictEqual(data.users.length, currentLength + 1);
     });
 
     it('should fail to create duplicate user', async () => {
         try {
-            users.push({
+            data.users.create({
                 email: 'test@example.com',
                 password: 'password',
                 isActive: true
@@ -38,13 +42,13 @@ describe('users', () => {
     });
 
     it('should get a user', async () => {
-        const user = users.find(u => u.email === 'test@example.com');
+        const user = data.users.toArray().find(u => u.email === 'test@example.com');
 
         assert.strictEqual(user.email, 'test@example.com');
     });
 
     it('should find users', async () => {
-        const foundUsers = users.filter(u => u.isActive === true);
+        const foundUsers = data.users.toArray().filter(u => u.isActive === true);
 
         assert.strictEqual(foundUsers.length, 2);
     });
@@ -52,16 +56,16 @@ describe('users', () => {
     it('should update user', async () => {
         const newEmail = 'test-new-email@example.com';
 
-        const user = users.find(u => u.email === 'test@example.com');
+        const user = data.users.toArray().find(u => u.email === 'test@example.com');
         user.email = newEmail;
 
-        const updatedUser = users.find(u => u.email === newEmail);
+        const updatedUser = data.users.toArray().find(u => u.email === newEmail);
 
         assert.strictEqual(updatedUser.email, newEmail);
     });
 
     it('should sort users', async () => {
-        const sortedUsers = users.sort((a, b) => {
+        const sortedUsers = data.users.toArray().sort((a, b) => {
             if (a.email < b.email) {
                 return -1;
             } else if (a.email > b.email) {
@@ -72,7 +76,7 @@ describe('users', () => {
 
         assert.deepStrictEqual(
             sortedUsers,
-            [...users.items].sort((a, b) => {
+            data.users.toArray().sort((a, b) => {
                 if (a.email < b.email) {
                     return -1;
                 } else if (a.email > b.email) {
@@ -84,7 +88,7 @@ describe('users', () => {
 
         assert.notDeepStrictEqual(
             sortedUsers,
-            users.items
+            data.users.toArray()
         );
     });
 
