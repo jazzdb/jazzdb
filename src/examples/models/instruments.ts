@@ -6,14 +6,20 @@ export interface IInstrumentModel extends IModel {
 }
 
 export class InstrumentModel extends Model {
-    filter(callbackfn: (value: IInstrumentModel, index: number, array: any[]) => any): IInstrumentModel[] {
+    filter(callbackfn: (value: IInstrumentModel, index: number, array: IInstrumentModel[]) => any): IInstrumentModel[] {
         return super.filter(callbackfn);
     }
-    find(callbackfn: (value: IInstrumentModel, index: number, obj: any[]) => any): IInstrumentModel {
+    find(callbackfn: (value: IInstrumentModel, index: number, obj: IInstrumentModel[]) => any): IInstrumentModel {
         return super.find(callbackfn);
     }
-    findIndex(callbackfn: (value: IInstrumentModel, index: number, obj: any[]) => any): number {
+    findIndex(callbackfn: (value: IInstrumentModel, index: number, obj: IInstrumentModel[]) => any): number {
         return super.findIndex(callbackfn);
+    }
+    forEach(callbackfn: (value: IInstrumentModel, index: number, array: IInstrumentModel[]) => void): void {
+        return this.items.forEach(callbackfn);
+    }
+    map(callbackfn: (value: IInstrumentModel, index: number, array: IInstrumentModel[]) => any): IInstrumentModel[] {
+        return this.items.map(callbackfn);
     }
     push(...items: IInstrumentModel[]) {
         return super.push(...items);
