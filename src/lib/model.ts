@@ -5,27 +5,28 @@ import * as uuid from 'uuid';
 
 export interface IModel {
     _id?: string;
-    _createdAt?: string;
-    _deletedAt?: string;
-    _updatedAt?: string;
+    _createdAt?: number;
+    _deletedAt?: number;
+    _updatedAt?: number;
 }
 
 export class Model {
 
-    attributes: any = {
+    attributes: any = {};
+    protected defaultAttributes: any = {
         _id: {
             required: true,
             unique: true,
             type: AttributeTypes.String
         },
         _createdAt: {
-            type: AttributeTypes.String
+            type: AttributeTypes.Number
         },
         _deletedAt: {
-            type: AttributeTypes.String
+            type: AttributeTypes.Number
         },
         _updatedAt: {
-            type: AttributeTypes.String
+            type: AttributeTypes.Number
         }
     };
     items: any = {};
@@ -61,20 +62,30 @@ export class Model {
      */
     async save(): Promise<Model> {
         if (!this.name) {
-            throw new Error('Table is not configured.');
+            throw new Error('Name is not configured.');
         }
 
+        const dir = path.normalize(`./data/${this.name}`);
+        const dirExists = fs.existsSync(dir);
+        if (!dirExists) {
+            await fs.mkdirp(dir);
+        }
+
+        const currentItems = (await fs.readdir(dir))
+            .filter(item => item.match(/\.json$/i))
+            .map(item => item.replace(/\.json$/i, ''));
         const items = this.toArray();
 
         for (let i = 0; i < items.length; i++) {
-            const dir = path.normalize(`./data/${this.name}`);
-            const dirExists = fs.existsSync(dir);
-            if (!dirExists) {
-                await fs.mkdirp(dir);
-            }
-            
             const file = path.normalize(`${dir}/${items[i]._id}.json`);
             await fs.writeFile(file, JSON.stringify(items[i], null, 2));
+        }
+
+        for (let i = 0; i < currentItems.length; i++) {
+            if (!items.find(item => item._id === currentItems[i])) {
+                const file = path.normalize(`${dir}/${currentItems[i]}.json`);
+                await fs.unlink(file);
+            }
         }
 
         return this;
@@ -85,9 +96,19 @@ export class Model {
      * @param data the record data
      */
     create(data: any) {
+        data = {
+            _id: uuid.v4(),
+            _createdAt: new Date().getTime(),
+            ...data
+        };
+
+        const attributes = {
+            ...this.defaultAttributes,
+            ...this.attributes
+        };
         var validate = validator({
             type: 'object',
-            properties: this.attributes
+            properties: attributes
         });
         const isValid = validate(data);
 
@@ -96,31 +117,25 @@ export class Model {
             throw new Error(errorMessage);
         }
 
-        Object.keys(this.attributes).forEach((attributeName) => {
-            const attribute = this.attributes[attributeName];
+        Object.keys(attributes).forEach((attributeName) => {
+            const attribute = attributes[attributeName];
             const newValue = data[attributeName];
             const item = this.toArray().find((i: any) => {
                 const existingValue = i[attributeName];
-                if (existingValue !== undefined && newValue !== undefined && existingValue.toLowerCase() === newValue.toLowerCase()) {
+                if (existingValue !== undefined && newValue !== undefined && existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()) {
                     return true;
                 }
             });
             if (attribute.unique && item) {
                 throw new Error(`${attributeName} already exists: ${newValue}`);
-            }    
+            }
         });
 
-        const item = {
-            _id: uuid.v4(),
-            _createdAt: new Date().getTime(),
-            ...data
-        };
-
-        this.items[item._id] = item;
+        this.items[data._id] = data;
 
         this.length = Object.keys(this.items).length;
 
-        return item;
+        return data;
     }
 
     /**

@@ -1,11 +1,12 @@
 export interface IModel {
     _id?: string;
-    _createdAt?: string;
-    _deletedAt?: string;
-    _updatedAt?: string;
+    _createdAt?: number;
+    _deletedAt?: number;
+    _updatedAt?: number;
 }
 export declare class Model {
     attributes: any;
+    protected defaultAttributes: any;
     items: any;
     length: number;
     name: string;

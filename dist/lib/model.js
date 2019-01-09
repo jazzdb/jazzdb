@@ -52,20 +52,21 @@ var path = require("path");
 var uuid = require("uuid");
 var Model = /** @class */ (function () {
     function Model() {
-        this.attributes = {
+        this.attributes = {};
+        this.defaultAttributes = {
             _id: {
                 required: true,
                 unique: true,
                 type: AttributeTypes.String
             },
             _createdAt: {
-                type: AttributeTypes.String
+                type: AttributeTypes.Number
             },
             _deletedAt: {
-                type: AttributeTypes.String
+                type: AttributeTypes.Number
             },
             _updatedAt: {
-                type: AttributeTypes.String
+                type: AttributeTypes.Number
             }
         };
         this.items = {};
@@ -116,35 +117,66 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.save = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var items, i, dir, dirExists, file;
+            var dir, dirExists, currentItems, items, i, file, _loop_1, i;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!this.name) {
-                            throw new Error('Table is not configured.');
+                            throw new Error('Name is not configured.');
                         }
-                        items = this.toArray();
-                        i = 0;
-                        _a.label = 1;
-                    case 1:
-                        if (!(i < items.length)) return [3 /*break*/, 6];
                         dir = path.normalize("./data/" + this.name);
                         dirExists = fs.existsSync(dir);
-                        if (!!dirExists) return [3 /*break*/, 3];
+                        if (!!dirExists) return [3 /*break*/, 2];
                         return [4 /*yield*/, fs.mkdirp(dir)];
-                    case 2:
+                    case 1:
                         _a.sent();
-                        _a.label = 3;
+                        _a.label = 2;
+                    case 2: return [4 /*yield*/, fs.readdir(dir)];
                     case 3:
+                        currentItems = (_a.sent())
+                            .filter(function (item) { return item.match(/\.json$/i); })
+                            .map(function (item) { return item.replace(/\.json$/i, ''); });
+                        items = this.toArray();
+                        i = 0;
+                        _a.label = 4;
+                    case 4:
+                        if (!(i < items.length)) return [3 /*break*/, 7];
                         file = path.normalize(dir + "/" + items[i]._id + ".json");
                         return [4 /*yield*/, fs.writeFile(file, JSON.stringify(items[i], null, 2))];
-                    case 4:
-                        _a.sent();
-                        _a.label = 5;
                     case 5:
+                        _a.sent();
+                        _a.label = 6;
+                    case 6:
                         i++;
-                        return [3 /*break*/, 1];
-                    case 6: return [2 /*return*/, this];
+                        return [3 /*break*/, 4];
+                    case 7:
+                        _loop_1 = function (i) {
+                            var file;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        if (!!items.find(function (item) { return item._id === currentItems[i]; })) return [3 /*break*/, 2];
+                                        file = path.normalize(dir + "/" + currentItems[i] + ".json");
+                                        return [4 /*yield*/, fs.unlink(file)];
+                                    case 1:
+                                        _a.sent();
+                                        _a.label = 2;
+                                    case 2: return [2 /*return*/];
+                                }
+                            });
+                        };
+                        i = 0;
+                        _a.label = 8;
+                    case 8:
+                        if (!(i < currentItems.length)) return [3 /*break*/, 11];
+                        return [5 /*yield**/, _loop_1(i)];
+                    case 9:
+                        _a.sent();
+                        _a.label = 10;
+                    case 10:
+                        i++;
+                        return [3 /*break*/, 8];
+                    case 11: return [2 /*return*/, this];
                 }
             });
         });
@@ -155,21 +187,23 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.create = function (data) {
         var _this = this;
+        data = __assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, data);
+        var attributes = __assign({}, this.defaultAttributes, this.attributes);
         var validate = validator({
             type: 'object',
-            properties: this.attributes
+            properties: attributes
         });
         var isValid = validate(data);
         if (!isValid) {
             var errorMessage = "\"" + validate.errors[0].field.replace(/^data\./, '') + "\" " + validate.errors[0].message;
             throw new Error(errorMessage);
         }
-        Object.keys(this.attributes).forEach(function (attributeName) {
-            var attribute = _this.attributes[attributeName];
+        Object.keys(attributes).forEach(function (attributeName) {
+            var attribute = attributes[attributeName];
             var newValue = data[attributeName];
             var item = _this.toArray().find(function (i) {
                 var existingValue = i[attributeName];
-                if (existingValue !== undefined && newValue !== undefined && existingValue.toLowerCase() === newValue.toLowerCase()) {
+                if (existingValue !== undefined && newValue !== undefined && existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()) {
                     return true;
                 }
             });
@@ -177,10 +211,9 @@ var Model = /** @class */ (function () {
                 throw new Error(attributeName + " already exists: " + newValue);
             }
         });
-        var item = __assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, data);
-        this.items[item._id] = item;
+        this.items[data._id] = data;
         this.length = Object.keys(this.items).length;
-        return item;
+        return data;
     };
     /**
      * delete a record
