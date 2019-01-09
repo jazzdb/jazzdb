@@ -64,10 +64,10 @@ var InstrumentModel = /** @class */ (function (_super) {
         return _super.prototype.findIndex.call(this, callbackfn);
     };
     InstrumentModel.prototype.forEach = function (callbackfn) {
-        return this.items.forEach(callbackfn);
+        return _super.prototype.forEach.call(this, callbackfn);
     };
     InstrumentModel.prototype.map = function (callbackfn) {
-        return this.items.map(callbackfn);
+        return _super.prototype.map.call(this, callbackfn);
     };
     InstrumentModel.prototype.push = function () {
         var items = [];

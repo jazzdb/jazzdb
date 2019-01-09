@@ -16,10 +16,10 @@ export class InstrumentModel extends Model {
         return super.findIndex(callbackfn);
     }
     forEach(callbackfn: (value: IInstrumentModel, index: number, array: IInstrumentModel[]) => void): void {
-        return this.items.forEach(callbackfn);
+        return super.forEach(callbackfn);
     }
     map(callbackfn: (value: IInstrumentModel, index: number, array: IInstrumentModel[]) => any): IInstrumentModel[] {
-        return this.items.map(callbackfn);
+        return super.map(callbackfn);
     }
     push(...items: IInstrumentModel[]) {
         return super.push(...items);
