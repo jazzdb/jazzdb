@@ -10,7 +10,7 @@
 
 - Store data anywhere
 - Read and write data using JavaScript
-- In-memory storage for database-like features and availability
+- In-memory storage for high availability
 - Persistent storage as partitioned JSON files
 - Supports JSON Schema validation
 
