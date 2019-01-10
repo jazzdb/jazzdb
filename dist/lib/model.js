@@ -71,7 +71,7 @@ var Model = /** @class */ (function () {
         };
         this.items = {};
         this.length = 0;
-        this.name = '';
+        this.name = "";
     }
     /**
      * load model
@@ -90,7 +90,9 @@ var Model = /** @class */ (function () {
                         _c.label = 2;
                     case 2: return [4 /*yield*/, fs.readdir(dir)];
                     case 3:
-                        items = _c.sent();
+                        items = (_c.sent()).filter(function (item) {
+                            return item.match(/\.json$/i);
+                        });
                         i = 0;
                         _c.label = 4;
                     case 4:
@@ -98,7 +100,7 @@ var Model = /** @class */ (function () {
                         file = path.normalize(dir + "/" + items[i]);
                         if (!fs.existsSync(file)) return [3 /*break*/, 6];
                         _b = (_a = JSON).parse;
-                        return [4 /*yield*/, fs.readFile(file, 'utf8')];
+                        return [4 /*yield*/, fs.readFile(file, "utf8")];
                     case 5:
                         item = _b.apply(_a, [_c.sent()]);
                         this.items[item._id] = item;
@@ -122,7 +124,7 @@ var Model = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         if (!this.name) {
-                            throw new Error('Name is not configured.');
+                            throw new Error("Name is not configured.");
                         }
                         dir = path.normalize("./data/" + this.name);
                         dirExists = fs.existsSync(dir);
@@ -135,7 +137,7 @@ var Model = /** @class */ (function () {
                     case 3:
                         currentItems = (_a.sent())
                             .filter(function (item) { return item.match(/\.json$/i); })
-                            .map(function (item) { return item.replace(/\.json$/i, ''); });
+                            .map(function (item) { return item.replace(/\.json$/i, ""); });
                         items = this.toArray();
                         i = 0;
                         _a.label = 4;
@@ -190,12 +192,12 @@ var Model = /** @class */ (function () {
         data = __assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, data);
         var attributes = __assign({}, this.defaultAttributes, this.attributes);
         var validate = validator({
-            type: 'object',
+            type: "object",
             properties: attributes
         });
         var isValid = validate(data);
         if (!isValid) {
-            var errorMessage = "\"" + validate.errors[0].field.replace(/^data\./, '') + "\" " + validate.errors[0].message;
+            var errorMessage = "\"" + validate.errors[0].field.replace(/^data\./, "") + "\" " + validate.errors[0].message;
             throw new Error(errorMessage);
         }
         Object.keys(attributes).forEach(function (attributeName) {
@@ -203,7 +205,10 @@ var Model = /** @class */ (function () {
             var newValue = data[attributeName];
             var item = _this.toArray().find(function (i) {
                 var existingValue = i[attributeName];
-                if (existingValue !== undefined && newValue !== undefined && existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()) {
+                if (existingValue !== undefined &&
+                    newValue !== undefined &&
+                    existingValue.toString().toLowerCase() ===
+                        newValue.toString().toLowerCase()) {
                     return true;
                 }
             });
