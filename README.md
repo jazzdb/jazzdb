@@ -4,7 +4,7 @@
 
 # Intro
 
-[jazzdb](https://github.com/jazzdb/jazzdb) is a JavaScript data store written in JavaScript - so that makes it really easy to use native JavaScript to read and write data for Node.js applications.
+[JazzDB](https://github.com/jazzdb/jazzdb) is a persistent data store for Node.js applications. It is written in JavaScript which makes it really easy to _use_ JavaScript to read, write and query data.
 
 ## Features
 
