@@ -4,12 +4,17 @@ export interface IModel {
     _deletedAt?: number;
     _updatedAt?: number;
 }
+export interface IModelOpts {
+    path?: string;
+}
 export declare class Model {
     attributes: any;
     protected defaultAttributes: any;
     items: any;
     length: number;
     name: string;
+    path: string;
+    constructor(opts?: IModelOpts);
     /**
      * load model
      */

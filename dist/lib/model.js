@@ -51,7 +51,7 @@ var validator = require("is-my-json-valid");
 var path = require("path");
 var uuid = require("uuid");
 var Model = /** @class */ (function () {
-    function Model() {
+    function Model(opts) {
         this.attributes = {};
         this.defaultAttributes = {
             _id: {
@@ -72,6 +72,10 @@ var Model = /** @class */ (function () {
         this.items = {};
         this.length = 0;
         this.name = "";
+        this.path = path.normalize('./data');
+        if (opts && opts.path !== undefined) {
+            this.path = path.normalize(opts.path);
+        }
     }
     /**
      * load model
@@ -82,7 +86,7 @@ var Model = /** @class */ (function () {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        dir = path.normalize("./data/" + this.name);
+                        dir = path.normalize(this.path + "/" + this.name);
                         if (!!fs.existsSync(dir)) return [3 /*break*/, 2];
                         return [4 /*yield*/, fs.mkdirp(dir)];
                     case 1:
@@ -126,7 +130,7 @@ var Model = /** @class */ (function () {
                         if (!this.name) {
                             throw new Error("Name is not configured.");
                         }
-                        dir = path.normalize("./data/" + this.name);
+                        dir = path.normalize(this.path + "/" + this.name);
                         dirExists = fs.existsSync(dir);
                         if (!!dirExists) return [3 /*break*/, 2];
                         return [4 /*yield*/, fs.mkdirp(dir)];

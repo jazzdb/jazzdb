@@ -10,6 +10,10 @@ export interface IModel {
   _updatedAt?: number;
 }
 
+export interface IModelOpts {
+  path?: string;
+}
+
 export class Model {
   attributes: any = {};
   protected defaultAttributes: any = {
@@ -31,12 +35,19 @@ export class Model {
   items: any = {};
   length = 0;
   name = "";
+  path = path.normalize('./data');
+
+  constructor(opts?: IModelOpts) {
+    if (opts && opts.path !== undefined) {
+      this.path = path.normalize(opts.path);
+    }
+  }
 
   /**
    * load model
    */
   async load(): Promise<Model> {
-    const dir = path.normalize(`./data/${this.name}`);
+    const dir = path.normalize(`${this.path}/${this.name}`);
 
     if (!fs.existsSync(dir)) {
       await fs.mkdirp(dir);
@@ -66,7 +77,7 @@ export class Model {
       throw new Error("Name is not configured.");
     }
 
-    const dir = path.normalize(`./data/${this.name}`);
+    const dir = path.normalize(`${this.path}/${this.name}`);
     const dirExists = fs.existsSync(dir);
     if (!dirExists) {
       await fs.mkdirp(dir);
