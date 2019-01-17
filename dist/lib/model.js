@@ -254,7 +254,12 @@ var Model = /** @class */ (function () {
      * @param data the record data
      */
     Model.prototype.update = function (id, data) {
-        this.items[id] = data;
+        if (this.items[id]) {
+            this.items[id] = __assign({}, this.items[id], data);
+        }
+        else {
+            this.items[id] = data;
+        }
         return this.items[id];
     };
     return Model;

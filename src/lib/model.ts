@@ -186,7 +186,14 @@ export class Model {
    * @param data the record data
    */
   update(id: string, data: any) {
-    this.items[id] = data;
+    if (this.items[id]) {
+      this.items[id] = {
+        ...this.items[id],
+        ...data
+      };
+    } else {
+      this.items[id] = data;
+    }
     return this.items[id];
   }
 }

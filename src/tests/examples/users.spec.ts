@@ -3,93 +3,93 @@ import * as assert from 'assert';
 import { UserModel } from '../../examples/models/users';
 
 interface IData {
-    users?: UserModel
+  users?: UserModel;
 }
 
 describe('users', () => {
+  const data: IData = {};
 
-    const data: IData = {};
+  before(async () => {
+    data.users = await new UserModel().load();
+  });
 
-    before(async () => {
-        data.users = await new UserModel().load();
+  it('should create unique user', async () => {
+    const currentLength = data.users.length;
+
+    data.users.create({
+      email: `test-${Math.random()}@example.com`,
+      password: 'password',
+      isActive: true
     });
 
-    it('should create unique user', async () => {
-        const currentLength = data.users.length;
+    assert.strictEqual(data.users.length, currentLength + 1);
+  });
 
-        data.users.create({
-            email: `test-${Math.random()}@example.com`,
-            password: 'password',
-            isActive: true
-        });
+  it('should fail to create duplicate user', async () => {
+    try {
+      data.users.create({
+        email: 'test@example.com',
+        password: 'password',
+        isActive: true
+      });
 
-        assert.strictEqual(data.users.length, currentLength + 1);
-    });
+      assert.fail('should throw error');
+    } catch (error) {
+      assert.strictEqual(error.message, 'email already exists: test@example.com');
+    }
+  });
 
-    it('should fail to create duplicate user', async () => {
-        try {
-            data.users.create({
-                email: 'test@example.com',
-                password: 'password',
-                isActive: true
-            });
+  it('should get a user', async () => {
+    const user = data.users.toArray().find(u => u.email === 'test@example.com');
 
-            assert.fail('should throw error');
+    assert.strictEqual(user.email, 'test@example.com');
+  });
 
-        } catch (error) {
-            assert.strictEqual(error.message, 'email already exists: test@example.com')
+  it('should find users', async () => {
+    const foundUsers = data.users.toArray().filter(u => u.isActive === true);
+
+    assert.strictEqual(foundUsers.length, 2);
+  });
+
+  it('should update user', async () => {
+    const updatedUser = data.users.update(
+        '00bce127-1bd9-4908-b630-ba079583bab9',
+        {
+            email: 'test-new@example.com'
         }
+    );
+
+    assert.deepStrictEqual(updatedUser, {
+      _id: '00bce127-1bd9-4908-b630-ba079583bab9',
+      _createdAt: 1546852885560,
+      email: 'test-new@example.com',
+      password: 'password',
+      isActive: true
+    });
+  });
+
+  it('should sort users', async () => {
+    const sortedUsers = data.users.toArray().sort((a, b) => {
+      if (a.email < b.email) {
+        return -1;
+      } else if (a.email > b.email) {
+        return 1;
+      }
+      return 0;
     });
 
-    it('should get a user', async () => {
-        const user = data.users.toArray().find(u => u.email === 'test@example.com');
+    assert.deepStrictEqual(
+      sortedUsers,
+      data.users.toArray().sort((a, b) => {
+        if (a.email < b.email) {
+          return -1;
+        } else if (a.email > b.email) {
+          return 1;
+        }
+        return 0;
+      })
+    );
 
-        assert.strictEqual(user.email, 'test@example.com');
-    });
-
-    it('should find users', async () => {
-        const foundUsers = data.users.toArray().filter(u => u.isActive === true);
-
-        assert.strictEqual(foundUsers.length, 2);
-    });
-
-    it('should update user', async () => {
-        const newEmail = 'test-new-email@example.com';
-
-        const user = data.users.toArray().find(u => u.email === 'test@example.com');
-        user.email = newEmail;
-
-        const updatedUser = data.users.toArray().find(u => u.email === newEmail);
-
-        assert.strictEqual(updatedUser.email, newEmail);
-    });
-
-    it('should sort users', async () => {
-        const sortedUsers = data.users.toArray().sort((a, b) => {
-            if (a.email < b.email) {
-                return -1;
-            } else if (a.email > b.email) {
-                return 1;
-            }
-            return 0;
-        });
-
-        assert.deepStrictEqual(
-            sortedUsers,
-            data.users.toArray().sort((a, b) => {
-                if (a.email < b.email) {
-                    return -1;
-                } else if (a.email > b.email) {
-                    return 1;
-                }
-                return 0;
-            })
-        );
-
-        assert.notDeepStrictEqual(
-            sortedUsers,
-            data.users.toArray()
-        );
-    });
-
+    assert.notDeepStrictEqual(sortedUsers, data.users.toArray());
+  });
 });
