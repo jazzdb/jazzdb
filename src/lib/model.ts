@@ -11,6 +11,7 @@ export interface IModel {
 }
 
 export interface IModelOpts {
+  items?: any[];
   path?: string;
 }
 
@@ -40,6 +41,16 @@ export class Model {
   constructor(opts?: IModelOpts) {
     if (opts && opts.path !== undefined) {
       this.path = path.normalize(opts.path);
+    }
+    if (opts && opts.items !== undefined) {
+      if (Array.isArray(opts.items)) {
+        this.items = {};
+        opts.items.forEach((item: any) => {
+          this.items[item._id] = item;
+        });
+      } else {
+        this.items = opts.items;
+      }
     }
   }
 

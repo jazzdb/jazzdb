@@ -5,6 +5,7 @@ export interface IModel {
     _updatedAt?: number;
 }
 export interface IModelOpts {
+    items?: any[];
     path?: string;
 }
 export declare class Model {

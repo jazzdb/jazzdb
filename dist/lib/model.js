@@ -52,6 +52,7 @@ var path = require("path");
 var uuid = require("uuid");
 var Model = /** @class */ (function () {
     function Model(opts) {
+        var _this = this;
         this.attributes = {};
         this.defaultAttributes = {
             _id: {
@@ -75,6 +76,17 @@ var Model = /** @class */ (function () {
         this.path = path.normalize('./data');
         if (opts && opts.path !== undefined) {
             this.path = path.normalize(opts.path);
+        }
+        if (opts && opts.items !== undefined) {
+            if (Array.isArray(opts.items)) {
+                this.items = {};
+                opts.items.forEach(function (item) {
+                    _this.items[item._id] = item;
+                });
+            }
+            else {
+                this.items = opts.items;
+            }
         }
     }
     /**
