@@ -1,7 +1,9 @@
-import * as fs from "fs-extra";
-import * as validator from "is-my-json-valid";
-import * as path from "path";
-import * as uuid from "uuid";
+import * as fs from 'fs-extra';
+import * as validator from 'is-my-json-valid';
+import * as path from 'path';
+import * as uuid from 'uuid';
+
+import { InvalidJazzError, UniqueJazzError } from '../errors';
 
 export interface IModel {
   _id?: string;
@@ -35,7 +37,7 @@ export class Model {
   };
   items: any = {};
   length = 0;
-  name = "";
+  name = '';
   path = path.normalize('./data');
 
   constructor(opts?: IModelOpts) {
@@ -64,14 +66,12 @@ export class Model {
       await fs.mkdirp(dir);
     }
 
-    const items = (await fs.readdir(dir)).filter(item =>
-      item.match(/\.json$/i)
-    );
+    const items = (await fs.readdir(dir)).filter(item => item.match(/\.json$/i));
 
     for (let i = 0; i < items.length; i++) {
       const file = path.normalize(`${dir}/${items[i]}`);
       if (fs.existsSync(file)) {
-        const item = JSON.parse(await fs.readFile(file, "utf8"));
+        const item = JSON.parse(await fs.readFile(file, 'utf8'));
         this.items[item._id] = item;
         this.length = Object.keys(this.items).length;
       }
@@ -85,7 +85,7 @@ export class Model {
    */
   async save(): Promise<Model> {
     if (!this.name) {
-      throw new Error("Name is not configured.");
+      throw new Error('Name is not configured.');
     }
 
     const dir = path.normalize(`${this.path}/${this.name}`);
@@ -96,7 +96,7 @@ export class Model {
 
     const currentItems = (await fs.readdir(dir))
       .filter(item => item.match(/\.json$/i))
-      .map(item => item.replace(/\.json$/i, ""));
+      .map(item => item.replace(/\.json$/i, ''));
     const items = this.toArray();
 
     for (let i = 0; i < items.length; i++) {
@@ -130,17 +130,17 @@ export class Model {
       ...this.attributes
     };
     var validate = validator({
-      type: "object",
+      type: 'object',
       properties: attributes
     });
     const isValid = validate(data);
 
     if (!isValid) {
-      const errorMessage = `"${validate.errors[0].field.replace(
+      const errorMessage = `Model (${this.name}) Attribute (${validate.errors[0].field.replace(
         /^data\./,
-        ""
-      )}" ${validate.errors[0].message}`;
-      throw new Error(errorMessage);
+        ''
+      )}) ${validate.errors[0].message}`;
+      throw new InvalidJazzError(errorMessage);
     }
 
     Object.keys(attributes).forEach(attributeName => {
@@ -151,14 +151,14 @@ export class Model {
         if (
           existingValue !== undefined &&
           newValue !== undefined &&
-          existingValue.toString().toLowerCase() ===
-            newValue.toString().toLowerCase()
+          existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()
         ) {
           return true;
         }
       });
       if (attribute.unique && item) {
-        throw new Error(`${attributeName} already exists: ${newValue}`);
+        const errorMessage = `Model (${this.name}) Attribute (${attributeName}) is not unique: ${newValue}`;
+        throw new UniqueJazzError(errorMessage);
       }
     });
 
@@ -221,7 +221,7 @@ export class Model {
 }
 
 export enum AttributeTypes {
-  Boolean = "boolean",
-  Number = "number",
-  String = "string"
+  Boolean = 'boolean',
+  Number = 'number',
+  String = 'string'
 }

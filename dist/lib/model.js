@@ -50,6 +50,7 @@ var fs = require("fs-extra");
 var validator = require("is-my-json-valid");
 var path = require("path");
 var uuid = require("uuid");
+var errors_1 = require("../errors");
 var Model = /** @class */ (function () {
     function Model(opts) {
         var _this = this;
@@ -72,7 +73,7 @@ var Model = /** @class */ (function () {
         };
         this.items = {};
         this.length = 0;
-        this.name = "";
+        this.name = '';
         this.path = path.normalize('./data');
         if (opts && opts.path !== undefined) {
             this.path = path.normalize(opts.path);
@@ -106,9 +107,7 @@ var Model = /** @class */ (function () {
                         _c.label = 2;
                     case 2: return [4 /*yield*/, fs.readdir(dir)];
                     case 3:
-                        items = (_c.sent()).filter(function (item) {
-                            return item.match(/\.json$/i);
-                        });
+                        items = (_c.sent()).filter(function (item) { return item.match(/\.json$/i); });
                         i = 0;
                         _c.label = 4;
                     case 4:
@@ -116,7 +115,7 @@ var Model = /** @class */ (function () {
                         file = path.normalize(dir + "/" + items[i]);
                         if (!fs.existsSync(file)) return [3 /*break*/, 6];
                         _b = (_a = JSON).parse;
-                        return [4 /*yield*/, fs.readFile(file, "utf8")];
+                        return [4 /*yield*/, fs.readFile(file, 'utf8')];
                     case 5:
                         item = _b.apply(_a, [_c.sent()]);
                         this.items[item._id] = item;
@@ -140,7 +139,7 @@ var Model = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         if (!this.name) {
-                            throw new Error("Name is not configured.");
+                            throw new Error('Name is not configured.');
                         }
                         dir = path.normalize(this.path + "/" + this.name);
                         dirExists = fs.existsSync(dir);
@@ -153,7 +152,7 @@ var Model = /** @class */ (function () {
                     case 3:
                         currentItems = (_a.sent())
                             .filter(function (item) { return item.match(/\.json$/i); })
-                            .map(function (item) { return item.replace(/\.json$/i, ""); });
+                            .map(function (item) { return item.replace(/\.json$/i, ''); });
                         items = this.toArray();
                         i = 0;
                         _a.label = 4;
@@ -208,13 +207,13 @@ var Model = /** @class */ (function () {
         data = __assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, data);
         var attributes = __assign({}, this.defaultAttributes, this.attributes);
         var validate = validator({
-            type: "object",
+            type: 'object',
             properties: attributes
         });
         var isValid = validate(data);
         if (!isValid) {
-            var errorMessage = "\"" + validate.errors[0].field.replace(/^data\./, "") + "\" " + validate.errors[0].message;
-            throw new Error(errorMessage);
+            var errorMessage = "Model (" + this.name + ") Attribute (" + validate.errors[0].field.replace(/^data\./, '') + ") " + validate.errors[0].message;
+            throw new errors_1.InvalidJazzError(errorMessage);
         }
         Object.keys(attributes).forEach(function (attributeName) {
             var attribute = attributes[attributeName];
@@ -223,13 +222,13 @@ var Model = /** @class */ (function () {
                 var existingValue = i[attributeName];
                 if (existingValue !== undefined &&
                     newValue !== undefined &&
-                    existingValue.toString().toLowerCase() ===
-                        newValue.toString().toLowerCase()) {
+                    existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()) {
                     return true;
                 }
             });
             if (attribute.unique && item) {
-                throw new Error(attributeName + " already exists: " + newValue);
+                var errorMessage = "Model (" + _this.name + ") Attribute (" + attributeName + ") is not unique: " + newValue;
+                throw new errors_1.UniqueJazzError(errorMessage);
             }
         });
         this.items[data._id] = data;
