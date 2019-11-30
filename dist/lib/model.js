@@ -11,10 +11,11 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -203,37 +204,56 @@ var Model = /** @class */ (function () {
      * @param data the record data
      */
     Model.prototype.create = function (data) {
+        return this.createMany(data)[0];
+    };
+    /**
+     * create a record
+     * @param data the record data
+     */
+    Model.prototype.createMany = function (records) {
         var _this = this;
-        data = __assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, data);
-        var attributes = __assign({}, this.defaultAttributes, this.attributes);
+        records = records.map(function (data) { return (__assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, data)); });
+        var attributes = __assign(__assign({}, this.defaultAttributes), this.attributes);
         var validate = validator({
             type: 'object',
             properties: attributes
         });
-        var isValid = validate(data);
-        if (!isValid) {
-            var errorMessage = "Model (" + this.name + ") Attribute (" + validate.errors[0].field.replace(/^data\./, '') + ") " + validate.errors[0].message;
-            throw new errors_1.InvalidJazzError(errorMessage);
-        }
-        Object.keys(attributes).forEach(function (attributeName) {
-            var attribute = attributes[attributeName];
-            var newValue = data[attributeName];
-            var item = _this.toArray().find(function (i) {
-                var existingValue = i[attributeName];
-                if (existingValue !== undefined &&
-                    newValue !== undefined &&
-                    existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()) {
-                    return true;
-                }
-            });
-            if (attribute.unique && item) {
-                var errorMessage = "Model (" + _this.name + ") Attribute (" + attributeName + ") is not unique: " + newValue;
-                throw new errors_1.UniqueJazzError(errorMessage);
-            }
+        var uniqueAttributes = Object.entries(attributes)
+            .filter(function (_a) {
+            var _ = _a[0], attribute = _a[1];
+            return attribute.unique;
+        })
+            .map(function (_a) {
+            var name = _a[0], attribute = _a[1];
+            return (__assign(__assign({}, attribute), { name: name }));
         });
-        this.items[data._id] = data;
-        this.length = Object.keys(this.items).length;
-        return data;
+        records.forEach(function (data) {
+            var isValid = validate(data);
+            if (!isValid) {
+                var errorMessage = "Model (" + _this.name + ") Attribute (" + validate.errors[0].field.replace(/^data\./, '') + ") " + validate.errors[0].message;
+                throw new errors_1.InvalidJazzError(errorMessage);
+            }
+            if (uniqueAttributes.length) {
+                uniqueAttributes.forEach(function (attribute) {
+                    var newValue = data[attribute.name];
+                    var item = _this.toArray().find(function (i) {
+                        var existingValue = i[attribute.name];
+                        if (existingValue !== undefined &&
+                            newValue !== undefined &&
+                            existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()) {
+                            return true;
+                        }
+                    });
+                    if (attribute.unique && item) {
+                        var errorMessage = "Model (" + _this.name + ") Attribute (" + attribute.name + ") is not unique: " + newValue;
+                        throw new errors_1.UniqueJazzError(errorMessage);
+                    }
+                });
+            }
+            _this.items[data._id] = data;
+            _this.length = Object.keys(_this.items).length;
+        });
+        return records;
     };
     /**
      * delete a record
@@ -264,13 +284,20 @@ var Model = /** @class */ (function () {
         return array;
     };
     /**
+     * truncate all records
+     */
+    Model.prototype.truncate = function () {
+        this.items = {};
+        this.length = 0;
+    };
+    /**
      * update a record
      * @param id the record id
      * @param data the record data
      */
     Model.prototype.update = function (id, data) {
         if (this.items[id]) {
-            this.items[id] = __assign({}, this.items[id], data);
+            this.items[id] = __assign(__assign({}, this.items[id]), data);
         }
         else {
             this.items[id] = data;

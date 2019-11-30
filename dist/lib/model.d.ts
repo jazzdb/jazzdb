@@ -1,3 +1,10 @@
+export interface IAttribute {
+    [name: string]: {
+        required?: boolean;
+        unique?: boolean;
+        type?: 'boolean' | 'number' | 'string';
+    };
+}
 export interface IModel {
     _id?: string;
     _createdAt?: number;
@@ -9,8 +16,8 @@ export interface IModelOpts {
     path?: string;
 }
 export declare class Model {
-    attributes: any;
-    protected defaultAttributes: any;
+    attributes: IAttribute;
+    protected defaultAttributes: IAttribute;
     items: any;
     length: number;
     name: string;
@@ -19,16 +26,21 @@ export declare class Model {
     /**
      * load model
      */
-    load(): Promise<Model>;
+    load(): Promise<any>;
     /**
      * save model
      */
-    save(): Promise<Model>;
+    save(): Promise<any>;
     /**
      * create a record
      * @param data the record data
      */
     create(data: any): any;
+    /**
+     * create a record
+     * @param data the record data
+     */
+    createMany(records: any[]): any[];
     /**
      * delete a record
      * @param id the record id
@@ -43,6 +55,10 @@ export declare class Model {
      * convert the records to an array
      */
     toArray(): any[];
+    /**
+     * truncate all records
+     */
+    truncate(): void;
     /**
      * update a record
      * @param id the record id

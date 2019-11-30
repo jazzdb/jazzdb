@@ -5,6 +5,14 @@ import * as uuid from 'uuid';
 
 import { InvalidJazzError, UniqueJazzError } from '../errors';
 
+export interface IAttribute {
+  [name: string]: {
+    required?: boolean;
+    unique?: boolean;
+    type?: AttributeTypes;
+  };
+}
+
 export interface IModel {
   _id?: string;
   _createdAt?: number;
@@ -18,8 +26,8 @@ export interface IModelOpts {
 }
 
 export class Model {
-  attributes: any = {};
-  protected defaultAttributes: any = {
+  attributes: IAttribute = {};
+  protected defaultAttributes: IAttribute = {
     _id: {
       required: true,
       unique: true,
@@ -59,7 +67,7 @@ export class Model {
   /**
    * load model
    */
-  async load(): Promise<Model> {
+  async load(): Promise<any> {
     const dir = path.normalize(`${this.path}/${this.name}`);
 
     if (!fs.existsSync(dir)) {
@@ -83,7 +91,7 @@ export class Model {
   /**
    * save model
    */
-  async save(): Promise<Model> {
+  async save(): Promise<any> {
     if (!this.name) {
       throw new Error('Name is not configured.');
     }
@@ -119,11 +127,19 @@ export class Model {
    * @param data the record data
    */
   create(data: any) {
-    data = {
+    return this.createMany([data])[0];
+  }
+
+  /**
+   * create a record
+   * @param data the record data
+   */
+  createMany(records: any[]) {
+    records = records.map(data => ({
       _id: uuid.v4(),
       _createdAt: new Date().getTime(),
       ...data
-    };
+    }));
 
     const attributes = {
       ...this.defaultAttributes,
@@ -132,41 +148,52 @@ export class Model {
     var validate = validator({
       type: 'object',
       properties: attributes
-    });
-    const isValid = validate(data);
+    } as any);
 
-    if (!isValid) {
-      const errorMessage = `Model (${this.name}) Attribute (${validate.errors[0].field.replace(
-        /^data\./,
-        ''
-      )}) ${validate.errors[0].message}`;
-      throw new InvalidJazzError(errorMessage);
-    }
+    const uniqueAttributes = Object.entries(attributes)
+      .filter(([_, attribute]) => attribute.unique)
+      .map(([name, attribute]) => ({
+        ...attribute,
+        name
+      }));
 
-    Object.keys(attributes).forEach(attributeName => {
-      const attribute = attributes[attributeName];
-      const newValue = data[attributeName];
-      const item = this.toArray().find((i: any) => {
-        const existingValue = i[attributeName];
-        if (
-          existingValue !== undefined &&
-          newValue !== undefined &&
-          existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()
-        ) {
-          return true;
-        }
-      });
-      if (attribute.unique && item) {
-        const errorMessage = `Model (${this.name}) Attribute (${attributeName}) is not unique: ${newValue}`;
-        throw new UniqueJazzError(errorMessage);
+    records.forEach(data => {
+      const isValid = validate(data);
+
+      if (!isValid) {
+        const errorMessage = `Model (${this.name}) Attribute (${validate.errors[0].field.replace(
+          /^data\./,
+          ''
+        )}) ${validate.errors[0].message}`;
+        throw new InvalidJazzError(errorMessage);
       }
-    });
 
-    this.items[data._id] = data;
+      if (uniqueAttributes.length) {
+        uniqueAttributes.forEach(attribute => {
+          const newValue = data[attribute.name];
+          const item = this.toArray().find((i: any) => {
+            const existingValue = i[attribute.name];
+            if (
+              existingValue !== undefined &&
+              newValue !== undefined &&
+              existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()
+            ) {
+              return true;
+            }
+          });
+          if (attribute.unique && item) {
+            const errorMessage = `Model (${this.name}) Attribute (${attribute.name}) is not unique: ${newValue}`;
+            throw new UniqueJazzError(errorMessage);
+          }
+        });
+      }
 
-    this.length = Object.keys(this.items).length;
+      this.items[data._id] = data;
 
-    return data;
+      this.length = Object.keys(this.items).length;
+    })
+    
+    return records;
   }
 
   /**
@@ -200,6 +227,14 @@ export class Model {
       array.push(this.items[id]);
     });
     return array;
+  }
+
+  /**
+   * truncate all records
+   */
+  truncate() {
+    this.items = {};
+    this.length = 0;
   }
 
   /**
