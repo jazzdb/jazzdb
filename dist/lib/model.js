@@ -204,7 +204,7 @@ var Model = /** @class */ (function () {
      * @param data the record data
      */
     Model.prototype.create = function (data) {
-        return this.createMany(data)[0];
+        return this.createMany([data])[0];
     };
     /**
      * create a record

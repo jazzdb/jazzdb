@@ -1,7 +1,7 @@
 {
   "name": "jazzdb",
   "description": "improvised data store for javascript",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "main": "dist/index.js",
   "devDependencies": {
     "@types/mocha": "^5.2.5",

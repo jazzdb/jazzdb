@@ -2,7 +2,7 @@ export interface IAttribute {
     [name: string]: {
         required?: boolean;
         unique?: boolean;
-        type?: 'boolean' | 'number' | 'string';
+        type?: AttributeTypes;
     };
 }
 export interface IModel {
