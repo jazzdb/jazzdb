@@ -68,6 +68,17 @@ export class Model {
    * load model
    */
   async load(): Promise<any> {
+    const file = path.normalize(`${this.path}/${this.name}.json`);
+
+    if (fs.existsSync(file)) {
+      const items = JSON.parse(await fs.readFile(file, 'utf8'));
+      items.forEach((item: any) => {
+        this.items[item._id] = item;
+      });
+      this.length = Object.keys(this.items).length;
+      return this;
+    }
+
     const dir = path.normalize(`${this.path}/${this.name}`);
 
     if (!fs.existsSync(dir)) {
@@ -96,28 +107,8 @@ export class Model {
       throw new Error('Name is not configured.');
     }
 
-    const dir = path.normalize(`${this.path}/${this.name}`);
-    const dirExists = fs.existsSync(dir);
-    if (!dirExists) {
-      await fs.mkdirp(dir);
-    }
-
-    const currentItems = (await fs.readdir(dir))
-      .filter(item => item.match(/\.json$/i))
-      .map(item => item.replace(/\.json$/i, ''));
-    const items = this.toArray();
-
-    for (let i = 0; i < items.length; i++) {
-      const file = path.normalize(`${dir}/${items[i]._id}.json`);
-      await fs.writeFile(file, JSON.stringify(items[i], null, 2));
-    }
-
-    for (let i = 0; i < currentItems.length; i++) {
-      if (!items.find(item => item._id === currentItems[i])) {
-        const file = path.normalize(`${dir}/${currentItems[i]}.json`);
-        await fs.unlink(file);
-      }
-    }
+    const file = path.normalize(`${this.path}/${this.name}.json`);
+    await fs.writeFile(file, JSON.stringify(this.toArray(), null, 2));
 
     return this;
   }

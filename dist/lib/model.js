@@ -96,36 +96,49 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.load = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var dir, items, i, file, item, _a, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var file, items_1, _a, _b, dir, items, i, file_1, item, _c, _d;
+            var _this = this;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
-                        dir = path.normalize(this.path + "/" + this.name);
-                        if (!!fs.existsSync(dir)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, fs.mkdirp(dir)];
-                    case 1:
-                        _c.sent();
-                        _c.label = 2;
-                    case 2: return [4 /*yield*/, fs.readdir(dir)];
-                    case 3:
-                        items = (_c.sent()).filter(function (item) { return item.match(/\.json$/i); });
-                        i = 0;
-                        _c.label = 4;
-                    case 4:
-                        if (!(i < items.length)) return [3 /*break*/, 7];
-                        file = path.normalize(dir + "/" + items[i]);
-                        if (!fs.existsSync(file)) return [3 /*break*/, 6];
+                        file = path.normalize(this.path + "/" + this.name + ".json");
+                        if (!fs.existsSync(file)) return [3 /*break*/, 2];
                         _b = (_a = JSON).parse;
                         return [4 /*yield*/, fs.readFile(file, 'utf8')];
+                    case 1:
+                        items_1 = _b.apply(_a, [_e.sent()]);
+                        items_1.forEach(function (item) {
+                            _this.items[item._id] = item;
+                        });
+                        this.length = Object.keys(this.items).length;
+                        return [2 /*return*/, this];
+                    case 2:
+                        dir = path.normalize(this.path + "/" + this.name);
+                        if (!!fs.existsSync(dir)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, fs.mkdirp(dir)];
+                    case 3:
+                        _e.sent();
+                        _e.label = 4;
+                    case 4: return [4 /*yield*/, fs.readdir(dir)];
                     case 5:
-                        item = _b.apply(_a, [_c.sent()]);
+                        items = (_e.sent()).filter(function (item) { return item.match(/\.json$/i); });
+                        i = 0;
+                        _e.label = 6;
+                    case 6:
+                        if (!(i < items.length)) return [3 /*break*/, 9];
+                        file_1 = path.normalize(dir + "/" + items[i]);
+                        if (!fs.existsSync(file_1)) return [3 /*break*/, 8];
+                        _d = (_c = JSON).parse;
+                        return [4 /*yield*/, fs.readFile(file_1, 'utf8')];
+                    case 7:
+                        item = _d.apply(_c, [_e.sent()]);
                         this.items[item._id] = item;
                         this.length = Object.keys(this.items).length;
-                        _c.label = 6;
-                    case 6:
+                        _e.label = 8;
+                    case 8:
                         i++;
-                        return [3 /*break*/, 4];
-                    case 7: return [2 /*return*/, this];
+                        return [3 /*break*/, 6];
+                    case 9: return [2 /*return*/, this];
                 }
             });
         });
@@ -135,66 +148,18 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.save = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var dir, dirExists, currentItems, items, i, file, _loop_1, i;
+            var file;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!this.name) {
                             throw new Error('Name is not configured.');
                         }
-                        dir = path.normalize(this.path + "/" + this.name);
-                        dirExists = fs.existsSync(dir);
-                        if (!!dirExists) return [3 /*break*/, 2];
-                        return [4 /*yield*/, fs.mkdirp(dir)];
+                        file = path.normalize(this.path + "/" + this.name + ".json");
+                        return [4 /*yield*/, fs.writeFile(file, JSON.stringify(this.toArray(), null, 2))];
                     case 1:
                         _a.sent();
-                        _a.label = 2;
-                    case 2: return [4 /*yield*/, fs.readdir(dir)];
-                    case 3:
-                        currentItems = (_a.sent())
-                            .filter(function (item) { return item.match(/\.json$/i); })
-                            .map(function (item) { return item.replace(/\.json$/i, ''); });
-                        items = this.toArray();
-                        i = 0;
-                        _a.label = 4;
-                    case 4:
-                        if (!(i < items.length)) return [3 /*break*/, 7];
-                        file = path.normalize(dir + "/" + items[i]._id + ".json");
-                        return [4 /*yield*/, fs.writeFile(file, JSON.stringify(items[i], null, 2))];
-                    case 5:
-                        _a.sent();
-                        _a.label = 6;
-                    case 6:
-                        i++;
-                        return [3 /*break*/, 4];
-                    case 7:
-                        _loop_1 = function (i) {
-                            var file;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        if (!!items.find(function (item) { return item._id === currentItems[i]; })) return [3 /*break*/, 2];
-                                        file = path.normalize(dir + "/" + currentItems[i] + ".json");
-                                        return [4 /*yield*/, fs.unlink(file)];
-                                    case 1:
-                                        _a.sent();
-                                        _a.label = 2;
-                                    case 2: return [2 /*return*/];
-                                }
-                            });
-                        };
-                        i = 0;
-                        _a.label = 8;
-                    case 8:
-                        if (!(i < currentItems.length)) return [3 /*break*/, 11];
-                        return [5 /*yield**/, _loop_1(i)];
-                    case 9:
-                        _a.sent();
-                        _a.label = 10;
-                    case 10:
-                        i++;
-                        return [3 /*break*/, 8];
-                    case 11: return [2 /*return*/, this];
+                        return [2 /*return*/, this];
                 }
             });
         });
