@@ -149,7 +149,9 @@ export class Model {
 
     this.records.forEach((record) => {
       Object.keys(indexes).forEach((attributeName: string) => {
-        indexes[attributeName][record[attributeName]] = record._id;
+        if (record[attributeName] !== undefined) {
+          indexes[attributeName][record[attributeName]] = record._id;
+        }
       });
     });
 
@@ -191,11 +193,13 @@ export class Model {
 
       Object.keys(indexes).forEach(attributeName => {
         const newValue = newRecord[attributeName];
-        if (indexes[attributeName][newValue]) {
-          const errorMessage = `Model (${this.name}) Attribute (${attributeName}) is not unique: ${newValue}`;
-          throw new UniqueJazzError(errorMessage);
+        if (newValue !== undefined) {
+          if (indexes[attributeName][newValue]) {
+            const errorMessage = `Model (${this.name}) Attribute (${attributeName}) is not unique: ${newValue}`;
+            throw new UniqueJazzError(errorMessage);
+          }
+          indexes[attributeName][newValue] = newRecord._id;
         }
-        indexes[attributeName][newValue] = newRecord._id;
       });
     });
 
