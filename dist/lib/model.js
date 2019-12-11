@@ -48,7 +48,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs-extra");
-var validator = require("is-my-json-valid");
 var path = require("path");
 var uuid = require("uuid");
 var errors_1 = require("../errors");
@@ -72,7 +71,7 @@ var Model = /** @class */ (function () {
                 type: AttributeTypes.Number
             }
         };
-        this.items = {};
+        this.records = [];
         this.length = 0;
         this.name = '';
         this.path = path.normalize('./data');
@@ -81,14 +80,16 @@ var Model = /** @class */ (function () {
         }
         if (opts && opts.items !== undefined) {
             if (Array.isArray(opts.items)) {
-                this.items = {};
-                opts.items.forEach(function (item) {
-                    _this.items[item._id] = item;
-                });
+                this.records = opts.items;
             }
             else {
-                this.items = opts.items;
+                this.records = [];
+                Object.entries(opts.items).forEach(function (_a) {
+                    var _id = _a[0], item = _a[1];
+                    _this.records.push(__assign({ _id: _id }, item));
+                });
             }
+            this.length = this.records.length;
         }
     }
     /**
@@ -96,49 +97,44 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.load = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var file, items_1, _a, _b, dir, items, i, file_1, item, _c, _d;
-            var _this = this;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
+            var file, _a, _b, _c, dir, files, i, file_1, item, _d, _e;
+            return __generator(this, function (_f) {
+                switch (_f.label) {
                     case 0:
                         file = path.normalize(this.path + "/" + this.name + ".json");
                         if (!fs.existsSync(file)) return [3 /*break*/, 2];
-                        _b = (_a = JSON).parse;
+                        _a = this;
+                        _c = (_b = JSON).parse;
                         return [4 /*yield*/, fs.readFile(file, 'utf8')];
                     case 1:
-                        items_1 = _b.apply(_a, [_e.sent()]);
-                        items_1.forEach(function (item) {
-                            _this.items[item._id] = item;
-                        });
-                        this.length = Object.keys(this.items).length;
+                        _a.records = _c.apply(_b, [_f.sent()]);
+                        this.length = this.records.length;
                         return [2 /*return*/, this];
                     case 2:
                         dir = path.normalize(this.path + "/" + this.name);
-                        if (!!fs.existsSync(dir)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, fs.mkdirp(dir)];
+                        return [4 /*yield*/, fs.readdir(dir)];
                     case 3:
-                        _e.sent();
-                        _e.label = 4;
-                    case 4: return [4 /*yield*/, fs.readdir(dir)];
-                    case 5:
-                        items = (_e.sent()).filter(function (item) { return item.match(/\.json$/i); });
+                        files = (_f.sent()).filter(function (item) { return item.match(/\.json$/i); });
+                        // reset items
+                        this.records = [];
                         i = 0;
-                        _e.label = 6;
-                    case 6:
-                        if (!(i < items.length)) return [3 /*break*/, 9];
-                        file_1 = path.normalize(dir + "/" + items[i]);
-                        if (!fs.existsSync(file_1)) return [3 /*break*/, 8];
-                        _d = (_c = JSON).parse;
+                        _f.label = 4;
+                    case 4:
+                        if (!(i < files.length)) return [3 /*break*/, 7];
+                        file_1 = path.normalize(dir + "/" + files[i]);
+                        if (!fs.existsSync(file_1)) return [3 /*break*/, 6];
+                        _e = (_d = JSON).parse;
                         return [4 /*yield*/, fs.readFile(file_1, 'utf8')];
-                    case 7:
-                        item = _d.apply(_c, [_e.sent()]);
-                        this.items[item._id] = item;
-                        this.length = Object.keys(this.items).length;
-                        _e.label = 8;
-                    case 8:
+                    case 5:
+                        item = _e.apply(_d, [_f.sent()]);
+                        this.records.push(__assign({ _id: item._id }, item));
+                        _f.label = 6;
+                    case 6:
                         i++;
-                        return [3 /*break*/, 6];
-                    case 9: return [2 /*return*/, this];
+                        return [3 /*break*/, 4];
+                    case 7:
+                        this.length = this.records.length;
+                        return [2 /*return*/, this];
                 }
             });
         });
@@ -148,7 +144,7 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.save = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var file;
+            var file, dir;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -156,104 +152,143 @@ var Model = /** @class */ (function () {
                             throw new Error('Name is not configured.');
                         }
                         file = path.normalize(this.path + "/" + this.name + ".json");
-                        return [4 /*yield*/, fs.writeFile(file, JSON.stringify(this.toArray(), null, 2))];
+                        dir = path.dirname(file);
+                        if (!!fs.existsSync(dir)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, fs.mkdirp(dir)];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/, this];
+                        _a.label = 2;
+                    case 2: return [4 /*yield*/, fs.writeFile(file, JSON.stringify(this.records, null, 2))];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });
     };
     /**
-     * create a record
-     * @param data the record data
+     * create one record
+     * @param record one record
      */
-    Model.prototype.create = function (data) {
-        return this.createMany([data])[0];
+    Model.prototype.create = function (record) {
+        return this.createMany([record])[0];
     };
     /**
-     * create a record
-     * @param data the record data
+     * create many records
+     * @param records many records
      */
     Model.prototype.createMany = function (records) {
         var _this = this;
-        records = records.map(function (data) { return (__assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, data)); });
         var attributes = __assign(__assign({}, this.defaultAttributes), this.attributes);
-        var validate = validator({
-            type: 'object',
-            properties: attributes
-        });
-        var uniqueAttributes = Object.entries(attributes)
+        var indexes = {};
+        Object.entries(attributes)
             .filter(function (_a) {
             var _ = _a[0], attribute = _a[1];
             return attribute.unique;
         })
-            .map(function (_a) {
-            var name = _a[0], attribute = _a[1];
-            return (__assign(__assign({}, attribute), { name: name }));
+            .forEach(function (_a) {
+            var attributeName = _a[0];
+            indexes[attributeName] = {};
         });
-        records.forEach(function (data) {
-            var isValid = validate(data);
-            if (!isValid) {
-                var errorMessage = "Model (" + _this.name + ") Attribute (" + validate.errors[0].field.replace(/^data\./, '') + ") " + validate.errors[0].message;
-                throw new errors_1.InvalidJazzError(errorMessage);
-            }
-            if (uniqueAttributes.length) {
-                uniqueAttributes.forEach(function (attribute) {
-                    var newValue = data[attribute.name];
-                    var item = _this.toArray().find(function (i) {
-                        var existingValue = i[attribute.name];
-                        if (existingValue !== undefined &&
-                            newValue !== undefined &&
-                            existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()) {
-                            return true;
+        this.records.forEach(function (record) {
+            Object.keys(indexes).forEach(function (attributeName) {
+                indexes[attributeName][record[attributeName]] = record._id;
+            });
+        });
+        var newRecords = records.map(function (newRecord) { return (__assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, newRecord)); });
+        newRecords.forEach(function (newRecord) {
+            Object.entries(attributes).forEach(function (_a) {
+                var attributeName = _a[0], attribute = _a[1];
+                if (attribute.required &&
+                    (newRecord[attributeName] === undefined || newRecord[attributeName] === null)) {
+                    throw new errors_1.RequiredJazzError("Attribute is required: " + attributeName);
+                }
+                if (attribute.many) {
+                    if (!Array.isArray(newRecord[attributeName])) {
+                        throw new errors_1.TypeJazzError("Attribute is invalid type: " + attributeName);
+                    }
+                    newRecord[attributeName].forEach(function (attributeValue) {
+                        if (attribute.enum && !attribute.enum.includes(attributeValue)) {
+                            throw new errors_1.EnumJazzError("Attribute is invalid type: " + attributeName);
+                        }
+                        if (attributeValue && attribute.type !== typeof attributeValue) {
+                            throw new errors_1.TypeJazzError("Attribute is invalid type: " + attributeName);
                         }
                     });
-                    if (attribute.unique && item) {
-                        var errorMessage = "Model (" + _this.name + ") Attribute (" + attribute.name + ") is not unique: " + newValue;
-                        throw new errors_1.UniqueJazzError(errorMessage);
+                }
+                else {
+                    if (attribute.enum && !attribute.enum.includes(newRecord[attributeName])) {
+                        throw new errors_1.EnumJazzError("Attribute is invalid enum: " + newRecord[attributeName]);
                     }
-                });
-            }
-            _this.items[data._id] = data;
-            _this.length = Object.keys(_this.items).length;
+                    if (newRecord[attributeName] && attribute.type !== typeof newRecord[attributeName]) {
+                        throw new errors_1.TypeJazzError("Attribute is invalid type: " + attributeName);
+                    }
+                }
+            });
+            Object.keys(indexes).forEach(function (attributeName) {
+                var newValue = newRecord[attributeName];
+                if (indexes[attributeName][newValue]) {
+                    var errorMessage = "Model (" + _this.name + ") Attribute (" + attributeName + ") is not unique: " + newValue;
+                    throw new errors_1.UniqueJazzError(errorMessage);
+                }
+                indexes[attributeName][newValue] = newRecord._id;
+            });
         });
-        return records;
+        this.records = this.records.concat(newRecords);
+        this.length = this.records.length;
+        return newRecords;
     };
     /**
-     * delete a record
-     * @param id the record id
+     * delete many records
+     * @param id one record id
+     * @returns the deleted records
      */
     Model.prototype.delete = function (id) {
-        var element = this.items[id];
-        delete this.items[id];
-        this.length = Object.keys(this.items).length;
-        return element;
+        return this.deleteMany([id])[0];
+    };
+    /**
+     * delete many records
+     * @param ids many record ids
+     * @returns the deleted records
+     */
+    Model.prototype.deleteMany = function (ids) {
+        var _this = this;
+        var deletedItems = ids
+            .map(function (id) {
+            var deletedItemIndex = _this.records.findIndex(function (_a) {
+                var _id = _a._id;
+                return _id === id;
+            });
+            if (deletedItemIndex !== -1) {
+                return _this.records.splice(deletedItemIndex, 1);
+            }
+        })
+            .filter(function (deletedItem) { return deletedItem !== undefined; });
+        this.length = this.records.length;
+        return deletedItems;
     };
     /**
      * get a record
      * @param id the record id
      */
     Model.prototype.get = function (id) {
-        return this.items[id];
+        return this.records.find(function (_a) {
+            var _id = _a._id;
+            return _id === id;
+        });
     };
     /**
      * convert the records to an array
      */
     Model.prototype.toArray = function () {
-        var _this = this;
-        var array = [];
-        Object.keys(this.items).forEach(function (id) {
-            array.push(_this.items[id]);
-        });
-        return array;
+        return this.records.slice();
     };
     /**
      * truncate all records
      */
     Model.prototype.truncate = function () {
-        this.items = {};
-        this.length = 0;
+        this.records = [];
+        this.length = this.records.length;
     };
     /**
      * update a record
@@ -261,13 +296,16 @@ var Model = /** @class */ (function () {
      * @param data the record data
      */
     Model.prototype.update = function (id, data) {
-        if (this.items[id]) {
-            this.items[id] = __assign(__assign({}, this.items[id]), data);
+        var elementIndex = this.records.findIndex(function (_a) {
+            var _id = _a._id;
+            return _id === id;
+        });
+        if (elementIndex === -1) {
+            return;
         }
-        else {
-            this.items[id] = data;
-        }
-        return this.items[id];
+        var updatedItem = __assign(__assign({}, this.records[elementIndex]), data);
+        this.records.splice(elementIndex, 1, updatedItem);
+        return updatedItem;
     };
     return Model;
 }());

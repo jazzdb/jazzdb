@@ -1,5 +1,7 @@
 export interface IAttribute {
     [name: string]: {
+        enum?: any[];
+        many?: boolean;
         required?: boolean;
         unique?: boolean;
         type?: AttributeTypes;
@@ -18,7 +20,7 @@ export interface IModelOpts {
 export declare class Model {
     attributes: IAttribute;
     protected defaultAttributes: IAttribute;
-    items: any;
+    protected records: any[];
     length: number;
     name: string;
     path: string;
@@ -30,22 +32,29 @@ export declare class Model {
     /**
      * save model
      */
-    save(): Promise<any>;
+    save(): Promise<void>;
     /**
-     * create a record
-     * @param data the record data
+     * create one record
+     * @param record one record
      */
-    create(data: any): any;
+    create(record: any): any;
     /**
-     * create a record
-     * @param data the record data
+     * create many records
+     * @param records many records
      */
     createMany(records: any[]): any[];
     /**
-     * delete a record
-     * @param id the record id
+     * delete many records
+     * @param id one record id
+     * @returns the deleted records
      */
     delete(id: string): any;
+    /**
+     * delete many records
+     * @param ids many record ids
+     * @returns the deleted records
+     */
+    deleteMany(ids: string[]): any[];
     /**
      * get a record
      * @param id the record id

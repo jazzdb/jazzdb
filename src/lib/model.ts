@@ -1,12 +1,13 @@
 import * as fs from 'fs-extra';
-import * as validator from 'is-my-json-valid';
 import * as path from 'path';
 import * as uuid from 'uuid';
 
-import { InvalidJazzError, UniqueJazzError } from '../errors';
+import { EnumJazzError, RequiredJazzError, TypeJazzError, UniqueJazzError } from '../errors';
 
 export interface IAttribute {
   [name: string]: {
+    enum?: any[];
+    many?: boolean;
     required?: boolean;
     unique?: boolean;
     type?: AttributeTypes;
@@ -43,7 +44,7 @@ export class Model {
       type: AttributeTypes.Number
     }
   };
-  items: any = {};
+  protected records: any[] = [];
   length = 0;
   name = '';
   path = path.normalize('./data');
@@ -54,13 +55,17 @@ export class Model {
     }
     if (opts && opts.items !== undefined) {
       if (Array.isArray(opts.items)) {
-        this.items = {};
-        opts.items.forEach((item: any) => {
-          this.items[item._id] = item;
-        });
+        this.records = opts.items;
       } else {
-        this.items = opts.items;
+        this.records = [];
+        Object.entries(opts.items).forEach(([_id, item]: [string, any]) => {
+          this.records.push({
+            _id,
+            ...item
+          });
+        });
       }
+      this.length = this.records.length;
     }
   }
 
@@ -68,33 +73,35 @@ export class Model {
    * load model
    */
   async load(): Promise<any> {
+    // load from single file
     const file = path.normalize(`${this.path}/${this.name}.json`);
-
     if (fs.existsSync(file)) {
-      const items = JSON.parse(await fs.readFile(file, 'utf8'));
-      items.forEach((item: any) => {
-        this.items[item._id] = item;
-      });
-      this.length = Object.keys(this.items).length;
+      this.records = JSON.parse(await fs.readFile(file, 'utf8'));
+      this.length = this.records.length;
       return this;
     }
 
+    // load from dir of files
     const dir = path.normalize(`${this.path}/${this.name}`);
 
-    if (!fs.existsSync(dir)) {
-      await fs.mkdirp(dir);
-    }
+    // load files
+    const files = (await fs.readdir(dir)).filter(item => item.match(/\.json$/i));
 
-    const items = (await fs.readdir(dir)).filter(item => item.match(/\.json$/i));
+    // reset items
+    this.records = [];
 
-    for (let i = 0; i < items.length; i++) {
-      const file = path.normalize(`${dir}/${items[i]}`);
+    for (let i = 0; i < files.length; i++) {
+      const file = path.normalize(`${dir}/${files[i]}`);
       if (fs.existsSync(file)) {
         const item = JSON.parse(await fs.readFile(file, 'utf8'));
-        this.items[item._id] = item;
-        this.length = Object.keys(this.items).length;
+        this.records.push({
+          _id: item._id,
+          ...item
+        });
       }
     }
+
+    this.length = this.records.length;
 
     return this;
   }
@@ -102,103 +109,129 @@ export class Model {
   /**
    * save model
    */
-  async save(): Promise<any> {
+  async save(): Promise<void> {
     if (!this.name) {
       throw new Error('Name is not configured.');
     }
 
     const file = path.normalize(`${this.path}/${this.name}.json`);
-    await fs.writeFile(file, JSON.stringify(this.toArray(), null, 2));
-
-    return this;
+    const dir = path.dirname(file);
+    if (!fs.existsSync(dir)) {
+      await fs.mkdirp(dir);
+    }
+    await fs.writeFile(file, JSON.stringify(this.records, null, 2));
   }
 
   /**
-   * create a record
-   * @param data the record data
+   * create one record
+   * @param record one record
    */
-  create(data: any) {
-    return this.createMany([data])[0];
+  create(record: any): any {
+    return this.createMany([record])[0];
   }
 
   /**
-   * create a record
-   * @param data the record data
+   * create many records
+   * @param records many records
    */
-  createMany(records: any[]) {
-    records = records.map(data => ({
-      _id: uuid.v4(),
-      _createdAt: new Date().getTime(),
-      ...data
-    }));
-
+  createMany(records: any[]): any[] {
     const attributes = {
       ...this.defaultAttributes,
       ...this.attributes
     };
-    var validate = validator({
-      type: 'object',
-      properties: attributes
-    } as any);
 
-    const uniqueAttributes = Object.entries(attributes)
+    const indexes: any = {};
+    Object.entries(attributes)
       .filter(([_, attribute]) => attribute.unique)
-      .map(([name, attribute]) => ({
-        ...attribute,
-        name
-      }));
+      .forEach(([attributeName]) => {
+        indexes[attributeName] = {};
+      });
 
-    records.forEach(data => {
-      const isValid = validate(data);
+    this.records.forEach((record) => {
+      Object.keys(indexes).forEach((attributeName: string) => {
+        indexes[attributeName][record[attributeName]] = record._id;
+      });
+    });
 
-      if (!isValid) {
-        const errorMessage = `Model (${this.name}) Attribute (${validate.errors[0].field.replace(
-          /^data\./,
-          ''
-        )}) ${validate.errors[0].message}`;
-        throw new InvalidJazzError(errorMessage);
-      }
+    const newRecords = records.map(newRecord => ({
+      _id: uuid.v4(),
+      _createdAt: new Date().getTime(),
+      ...newRecord
+    }));
 
-      if (uniqueAttributes.length) {
-        uniqueAttributes.forEach(attribute => {
-          const newValue = data[attribute.name];
-          const item = this.toArray().find((i: any) => {
-            const existingValue = i[attribute.name];
-            if (
-              existingValue !== undefined &&
-              newValue !== undefined &&
-              existingValue.toString().toLowerCase() === newValue.toString().toLowerCase()
-            ) {
-              return true;
+    newRecords.forEach(newRecord => {
+      Object.entries(attributes).forEach(([attributeName, attribute]) => {
+        if (
+          attribute.required &&
+          (newRecord[attributeName] === undefined || newRecord[attributeName] === null)
+        ) {
+          throw new RequiredJazzError(`Attribute is required: ${attributeName}`);
+        }
+        if (attribute.many) {
+          if (!Array.isArray(newRecord[attributeName])) {
+            throw new TypeJazzError(`Attribute is invalid type: ${attributeName}`);
+          }
+          newRecord[attributeName].forEach((attributeValue: any) => {
+            if (attribute.enum && !attribute.enum.includes(attributeValue)) {
+              throw new EnumJazzError(`Attribute is invalid type: ${attributeName}`);
+            }
+            if (attributeValue && attribute.type !== typeof attributeValue) {
+              throw new TypeJazzError(`Attribute is invalid type: ${attributeName}`);
             }
           });
-          if (attribute.unique && item) {
-            const errorMessage = `Model (${this.name}) Attribute (${attribute.name}) is not unique: ${newValue}`;
-            throw new UniqueJazzError(errorMessage);
+        } else {
+          if (attribute.enum && !attribute.enum.includes(newRecord[attributeName])) {
+            throw new EnumJazzError(`Attribute is invalid enum: ${newRecord[attributeName]}`);
           }
-        });
-      }
+          if (newRecord[attributeName] && attribute.type !== typeof newRecord[attributeName]) {
+            throw new TypeJazzError(`Attribute is invalid type: ${attributeName}`);
+          }
+        }
+      });
 
-      this.items[data._id] = data;
+      Object.keys(indexes).forEach(attributeName => {
+        const newValue = newRecord[attributeName];
+        if (indexes[attributeName][newValue]) {
+          const errorMessage = `Model (${this.name}) Attribute (${attributeName}) is not unique: ${newValue}`;
+          throw new UniqueJazzError(errorMessage);
+        }
+        indexes[attributeName][newValue] = newRecord._id;
+      });
+    });
 
-      this.length = Object.keys(this.items).length;
-    })
-    
-    return records;
+    this.records = this.records.concat(newRecords);
+    this.length = this.records.length;
+
+    return newRecords;
   }
 
   /**
-   * delete a record
-   * @param id the record id
+   * delete many records
+   * @param id one record id
+   * @returns the deleted records
    */
-  delete(id: string) {
-    const element = this.items[id];
+  delete(id: string): any {
+    return this.deleteMany([id])[0];
+  }
 
-    delete this.items[id];
+  /**
+   * delete many records
+   * @param ids many record ids
+   * @returns the deleted records
+   */
+  deleteMany(ids: string[]): any[] {
+    const deletedItems = ids
+      .map(id => {
+        const deletedItemIndex = this.records.findIndex(({ _id }) => _id === id);
+        if (deletedItemIndex !== -1) {
+          return this.records.splice(deletedItemIndex, 1);
+        }
+      })
+      .filter(deletedItem => deletedItem !== undefined);
 
-    this.length = Object.keys(this.items).length;
+    this.length = this.records.length;
 
-    return element;
+    return deletedItems;
   }
 
   /**
@@ -206,26 +239,22 @@ export class Model {
    * @param id the record id
    */
   get(id: string) {
-    return this.items[id];
+    return this.records.find(({ _id }) => _id === id);
   }
 
   /**
    * convert the records to an array
    */
   toArray() {
-    const array: any[] = [];
-    Object.keys(this.items).forEach(id => {
-      array.push(this.items[id]);
-    });
-    return array;
+    return this.records.slice();
   }
 
   /**
    * truncate all records
    */
   truncate() {
-    this.items = {};
-    this.length = 0;
+    this.records = [];
+    this.length = this.records.length;
   }
 
   /**
@@ -234,15 +263,20 @@ export class Model {
    * @param data the record data
    */
   update(id: string, data: any) {
-    if (this.items[id]) {
-      this.items[id] = {
-        ...this.items[id],
-        ...data
-      };
-    } else {
-      this.items[id] = data;
+    const elementIndex = this.records.findIndex(({ _id }) => _id === id);
+
+    if (elementIndex === -1) {
+      return;
     }
-    return this.items[id];
+
+    const updatedItem = {
+      ...this.records[elementIndex],
+      ...data
+    };
+
+    this.records.splice(elementIndex, 1, updatedItem);
+
+    return updatedItem;
   }
 }
 

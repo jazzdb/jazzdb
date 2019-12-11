@@ -1,6 +1,6 @@
-export class InvalidJazzError extends Error {
-  name = 'InvalidJazzError';
-  message = 'Attribute is invalid.';
+export class EnumJazzError extends Error {
+  name = 'EnumJazzError';
+  message = 'Attribute is invalid enum.';
   constructor(message?: string) {
     super(message);
     if (message) {

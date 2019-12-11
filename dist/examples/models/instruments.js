@@ -62,6 +62,7 @@ var InstrumentModel = /** @class */ (function (_super) {
                 type: model_1.AttributeTypes.String
             },
             type: {
+                enum: ['brass', 'percussion'],
                 required: true,
                 type: model_1.AttributeTypes.String
             }
@@ -82,11 +83,17 @@ var InstrumentModel = /** @class */ (function (_super) {
             });
         });
     };
-    InstrumentModel.prototype.create = function (data) {
-        return _super.prototype.create.call(this, data);
+    InstrumentModel.prototype.create = function (record) {
+        return _super.prototype.create.call(this, record);
+    };
+    InstrumentModel.prototype.createMany = function (records) {
+        return _super.prototype.createMany.call(this, records);
     };
     InstrumentModel.prototype.delete = function (id) {
         return _super.prototype.delete.call(this, id);
+    };
+    InstrumentModel.prototype.deleteMany = function (ids) {
+        return _super.prototype.deleteMany.call(this, ids);
     };
     InstrumentModel.prototype.get = function (id) {
         return _super.prototype.get.call(this, id);

@@ -10,7 +10,7 @@ interface IData {
 describe('instruments', () => {
   const data: IData = {};
 
-  before(async () => {
+  beforeEach(async () => {
     data.instruments = await new InstrumentModel().load();
   });
 
@@ -18,7 +18,7 @@ describe('instruments', () => {
     const currentLength = data.instruments.length;
 
     data.instruments.create({
-      name: 'Trumpet',
+      name: 'Trombone',
       type: 'brass'
     });
 
@@ -26,6 +26,11 @@ describe('instruments', () => {
   });
 
   it('should fail to create duplicate instrument', async () => {
+    data.instruments.create({
+      name: 'Trombone',
+      type: 'brass'
+    });
+
     try {
       data.instruments.create({
         name: 'Trombone',
@@ -43,7 +48,8 @@ describe('instruments', () => {
 
     assert.deepStrictEqual(instrument, {
       _id: '8d961961-6323-48b3-b4b4-849daa1ac3ed',
-      name: 'Trombone',
+      _createdAt: 1546855531587,
+      name: 'Trumpet',
       type: 'brass'
     });
   });
@@ -51,7 +57,7 @@ describe('instruments', () => {
   it('should convert instruments to array', async () => {
     const instrumentsArray = data.instruments.toArray();
 
-    assert.strictEqual(instrumentsArray.length, 3);
+    assert.strictEqual(instrumentsArray.length, 2);
   });
 
   it('should delete instrument', async () => {
