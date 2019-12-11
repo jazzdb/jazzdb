@@ -192,7 +192,9 @@ var Model = /** @class */ (function () {
         });
         this.records.forEach(function (record) {
             Object.keys(indexes).forEach(function (attributeName) {
-                indexes[attributeName][record[attributeName]] = record._id;
+                if (record[attributeName] !== undefined) {
+                    indexes[attributeName][record[attributeName]] = record._id;
+                }
             });
         });
         var newRecords = records.map(function (newRecord) { return (__assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, newRecord)); });
@@ -227,11 +229,13 @@ var Model = /** @class */ (function () {
             });
             Object.keys(indexes).forEach(function (attributeName) {
                 var newValue = newRecord[attributeName];
-                if (indexes[attributeName][newValue]) {
-                    var errorMessage = "Model (" + _this.name + ") Attribute (" + attributeName + ") is not unique: " + newValue;
-                    throw new errors_1.UniqueJazzError(errorMessage);
+                if (newValue !== undefined) {
+                    if (indexes[attributeName][newValue]) {
+                        var errorMessage = "Model (" + _this.name + ") Attribute (" + attributeName + ") is not unique: " + newValue;
+                        throw new errors_1.UniqueJazzError(errorMessage);
+                    }
+                    indexes[attributeName][newValue] = newRecord._id;
                 }
-                indexes[attributeName][newValue] = newRecord._id;
             });
         });
         this.records = this.records.concat(newRecords);
