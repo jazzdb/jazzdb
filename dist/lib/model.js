@@ -112,6 +112,9 @@ var Model = /** @class */ (function () {
                         return [2 /*return*/, this];
                     case 2:
                         dir = path.normalize(this.path + "/" + this.name);
+                        if (!fs.existsSync(dir)) {
+                            return [2 /*return*/, this];
+                        }
                         return [4 /*yield*/, fs.readdir(dir)];
                     case 3:
                         files = (_f.sent()).filter(function (item) { return item.match(/\.json$/i); });

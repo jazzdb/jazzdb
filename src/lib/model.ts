@@ -84,6 +84,10 @@ export class Model {
     // load from dir of files
     const dir = path.normalize(`${this.path}/${this.name}`);
 
+    if (!fs.existsSync(dir)) {
+      return this;
+    }
+
     // load files
     const files = (await fs.readdir(dir)).filter(item => item.match(/\.json$/i));
 
