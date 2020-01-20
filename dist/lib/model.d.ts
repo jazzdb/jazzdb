@@ -20,6 +20,7 @@ export interface IModelOpts {
 export declare class Model {
     attributes: IAttribute;
     protected defaultAttributes: IAttribute;
+    protected indexes: any;
     protected records: any[];
     length: number;
     name: string;
@@ -60,6 +61,7 @@ export declare class Model {
      * @param id the record id
      */
     get(id: string): any;
+    index(): void;
     /**
      * convert the records to an array
      */

@@ -44,6 +44,7 @@ export class Model {
       type: AttributeTypes.Number
     }
   };
+  protected indexes: any = {};
   protected records: any[] = [];
   length = 0;
   name = '';
@@ -65,7 +66,7 @@ export class Model {
           });
         });
       }
-      this.length = this.records.length;
+      this.index();
     }
   }
 
@@ -77,7 +78,7 @@ export class Model {
     const file = path.normalize(`${this.path}/${this.name}.json`);
     if (fs.existsSync(file)) {
       this.records = JSON.parse(await fs.readFile(file, 'utf8'));
-      this.length = this.records.length;
+      this.index();
       return this;
     }
 
@@ -105,7 +106,7 @@ export class Model {
       }
     }
 
-    this.length = this.records.length;
+    this.index();
 
     return this;
   }
@@ -144,21 +145,6 @@ export class Model {
       ...this.attributes
     };
 
-    const indexes: any = {};
-    Object.entries(attributes)
-      .filter(([_, attribute]) => attribute.unique)
-      .forEach(([attributeName]) => {
-        indexes[attributeName] = {};
-      });
-
-    this.records.forEach((record) => {
-      Object.keys(indexes).forEach((attributeName: string) => {
-        if (record[attributeName] !== undefined) {
-          indexes[attributeName][record[attributeName]] = record._id;
-        }
-      });
-    });
-
     const newRecords = records.map(newRecord => ({
       _id: uuid.v4(),
       _createdAt: new Date().getTime(),
@@ -193,22 +179,22 @@ export class Model {
             throw new TypeJazzError(`Attribute is invalid type: ${attributeName}`);
           }
         }
-      });
-
-      Object.keys(indexes).forEach(attributeName => {
-        const newValue = newRecord[attributeName];
-        if (newValue !== undefined) {
-          if (indexes[attributeName][newValue]) {
-            const errorMessage = `Model (${this.name}) Attribute (${attributeName}) is not unique: ${newValue}`;
-            throw new UniqueJazzError(errorMessage);
+        if (attribute.unique) {
+          const newValue = newRecord[attributeName];
+          if (newValue !== undefined) {
+            if (this.indexes[attributeName][newValue]) {
+              const errorMessage = `Model (${this.name}) Attribute (${attributeName}) is not unique: ${newValue}`;
+              throw new UniqueJazzError(errorMessage);
+            }
+            this.indexes[attributeName][newValue] = newRecord._id;
           }
-          indexes[attributeName][newValue] = newRecord._id;
         }
       });
     });
 
     this.records = this.records.concat(newRecords);
-    this.length = this.records.length;
+
+    this.index();
 
     return newRecords;
   }
@@ -237,7 +223,7 @@ export class Model {
       })
       .filter(deletedItem => deletedItem !== undefined);
 
-    this.length = this.records.length;
+    this.index();
 
     return deletedItems;
   }
@@ -248,6 +234,30 @@ export class Model {
    */
   get(id: string) {
     return this.records.find(({ _id }) => _id === id);
+  }
+
+  index() {
+    const attributes = {
+      ...this.defaultAttributes,
+      ...this.attributes
+    };
+
+    this.indexes = {};
+    Object.entries(attributes)
+      .filter(([_, attribute]) => attribute.unique)
+      .forEach(([attributeName]) => {
+        this.indexes[attributeName] = {};
+      });
+
+    this.records.forEach((record) => {
+      Object.keys(this.indexes).forEach((attributeName: string) => {
+        if (record[attributeName] !== undefined) {
+          this.indexes[attributeName][record[attributeName]] = record._id;
+        }
+      });
+    });
+
+    this.length = this.records.length;
   }
 
   /**
@@ -262,7 +272,7 @@ export class Model {
    */
   truncate() {
     this.records = [];
-    this.length = this.records.length;
+    this.index();
   }
 
   /**

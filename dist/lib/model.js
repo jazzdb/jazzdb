@@ -71,6 +71,7 @@ var Model = /** @class */ (function () {
                 type: AttributeTypes.Number
             }
         };
+        this.indexes = {};
         this.records = [];
         this.length = 0;
         this.name = '';
@@ -89,7 +90,7 @@ var Model = /** @class */ (function () {
                     _this.records.push(__assign({ _id: _id }, item));
                 });
             }
-            this.length = this.records.length;
+            this.index();
         }
     }
     /**
@@ -108,7 +109,7 @@ var Model = /** @class */ (function () {
                         return [4 /*yield*/, fs.readFile(file, 'utf8')];
                     case 1:
                         _a.records = _c.apply(_b, [_f.sent()]);
-                        this.length = this.records.length;
+                        this.index();
                         return [2 /*return*/, this];
                     case 2:
                         dir = path.normalize(this.path + "/" + this.name);
@@ -136,7 +137,7 @@ var Model = /** @class */ (function () {
                         i++;
                         return [3 /*break*/, 4];
                     case 7:
-                        this.length = this.records.length;
+                        this.index();
                         return [2 /*return*/, this];
                 }
             });
@@ -183,23 +184,6 @@ var Model = /** @class */ (function () {
     Model.prototype.createMany = function (records) {
         var _this = this;
         var attributes = __assign(__assign({}, this.defaultAttributes), this.attributes);
-        var indexes = {};
-        Object.entries(attributes)
-            .filter(function (_a) {
-            var _ = _a[0], attribute = _a[1];
-            return attribute.unique;
-        })
-            .forEach(function (_a) {
-            var attributeName = _a[0];
-            indexes[attributeName] = {};
-        });
-        this.records.forEach(function (record) {
-            Object.keys(indexes).forEach(function (attributeName) {
-                if (record[attributeName] !== undefined) {
-                    indexes[attributeName][record[attributeName]] = record._id;
-                }
-            });
-        });
         var newRecords = records.map(function (newRecord) { return (__assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, newRecord)); });
         newRecords.forEach(function (newRecord) {
             Object.entries(attributes).forEach(function (_a) {
@@ -229,20 +213,20 @@ var Model = /** @class */ (function () {
                         throw new errors_1.TypeJazzError("Attribute is invalid type: " + attributeName);
                     }
                 }
-            });
-            Object.keys(indexes).forEach(function (attributeName) {
-                var newValue = newRecord[attributeName];
-                if (newValue !== undefined) {
-                    if (indexes[attributeName][newValue]) {
-                        var errorMessage = "Model (" + _this.name + ") Attribute (" + attributeName + ") is not unique: " + newValue;
-                        throw new errors_1.UniqueJazzError(errorMessage);
+                if (attribute.unique) {
+                    var newValue = newRecord[attributeName];
+                    if (newValue !== undefined) {
+                        if (_this.indexes[attributeName][newValue]) {
+                            var errorMessage = "Model (" + _this.name + ") Attribute (" + attributeName + ") is not unique: " + newValue;
+                            throw new errors_1.UniqueJazzError(errorMessage);
+                        }
+                        _this.indexes[attributeName][newValue] = newRecord._id;
                     }
-                    indexes[attributeName][newValue] = newRecord._id;
                 }
             });
         });
         this.records = this.records.concat(newRecords);
-        this.length = this.records.length;
+        this.index();
         return newRecords;
     };
     /**
@@ -271,7 +255,7 @@ var Model = /** @class */ (function () {
             }
         })
             .filter(function (deletedItem) { return deletedItem !== undefined; });
-        this.length = this.records.length;
+        this.index();
         return deletedItems;
     };
     /**
@@ -284,6 +268,28 @@ var Model = /** @class */ (function () {
             return _id === id;
         });
     };
+    Model.prototype.index = function () {
+        var _this = this;
+        var attributes = __assign(__assign({}, this.defaultAttributes), this.attributes);
+        this.indexes = {};
+        Object.entries(attributes)
+            .filter(function (_a) {
+            var _ = _a[0], attribute = _a[1];
+            return attribute.unique;
+        })
+            .forEach(function (_a) {
+            var attributeName = _a[0];
+            _this.indexes[attributeName] = {};
+        });
+        this.records.forEach(function (record) {
+            Object.keys(_this.indexes).forEach(function (attributeName) {
+                if (record[attributeName] !== undefined) {
+                    _this.indexes[attributeName][record[attributeName]] = record._id;
+                }
+            });
+        });
+        this.length = this.records.length;
+    };
     /**
      * convert the records to an array
      */
@@ -295,7 +301,7 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.truncate = function () {
         this.records = [];
-        this.length = this.records.length;
+        this.index();
     };
     /**
      * update a record
