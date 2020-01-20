@@ -7,6 +7,9 @@ export interface IAttribute {
         type?: AttributeTypes;
     };
 }
+export interface ICreateOpts {
+    skipIndexing: boolean;
+}
 export interface IModel {
     _id?: string;
     _createdAt?: number;
@@ -38,12 +41,12 @@ export declare class Model {
      * create one record
      * @param record one record
      */
-    create(record: any): any;
+    create(record: any, opts?: ICreateOpts): any;
     /**
      * create many records
      * @param records many records
      */
-    createMany(records: any[]): any[];
+    createMany(records: any[], opts?: ICreateOpts): any[];
     /**
      * delete many records
      * @param id one record id

@@ -90,6 +90,7 @@ var Model = /** @class */ (function () {
                     _this.records.push(__assign({ _id: _id }, item));
                 });
             }
+            this.length = this.records.length;
             this.index();
         }
     }
@@ -109,6 +110,7 @@ var Model = /** @class */ (function () {
                         return [4 /*yield*/, fs.readFile(file, 'utf8')];
                     case 1:
                         _a.records = _c.apply(_b, [_f.sent()]);
+                        this.length = this.records.length;
                         this.index();
                         return [2 /*return*/, this];
                     case 2:
@@ -137,6 +139,7 @@ var Model = /** @class */ (function () {
                         i++;
                         return [3 /*break*/, 4];
                     case 7:
+                        this.length = this.records.length;
                         this.index();
                         return [2 /*return*/, this];
                 }
@@ -174,19 +177,20 @@ var Model = /** @class */ (function () {
      * create one record
      * @param record one record
      */
-    Model.prototype.create = function (record) {
-        return this.createMany([record])[0];
+    Model.prototype.create = function (record, opts) {
+        return this.createMany([record], opts)[0];
     };
     /**
      * create many records
      * @param records many records
      */
-    Model.prototype.createMany = function (records) {
+    Model.prototype.createMany = function (records, opts) {
         var _this = this;
-        var attributes = __assign(__assign({}, this.defaultAttributes), this.attributes);
+        var _a;
+        var combinedAttributes = __assign(__assign({}, this.defaultAttributes), this.attributes);
         var newRecords = records.map(function (newRecord) { return (__assign({ _id: uuid.v4(), _createdAt: new Date().getTime() }, newRecord)); });
         newRecords.forEach(function (newRecord) {
-            Object.entries(attributes).forEach(function (_a) {
+            Object.entries(combinedAttributes).forEach(function (_a) {
                 var attributeName = _a[0], attribute = _a[1];
                 if (attribute.required &&
                     (newRecord[attributeName] === undefined || newRecord[attributeName] === null)) {
@@ -226,7 +230,10 @@ var Model = /** @class */ (function () {
             });
         });
         this.records = this.records.concat(newRecords);
-        this.index();
+        this.length = this.records.length;
+        if (((_a = opts) === null || _a === void 0 ? void 0 : _a.skipIndexing) !== true) {
+            this.index();
+        }
         return newRecords;
     };
     /**
@@ -255,6 +262,7 @@ var Model = /** @class */ (function () {
             }
         })
             .filter(function (deletedItem) { return deletedItem !== undefined; });
+        this.length = this.records.length;
         this.index();
         return deletedItems;
     };
@@ -270,9 +278,9 @@ var Model = /** @class */ (function () {
     };
     Model.prototype.index = function () {
         var _this = this;
-        var attributes = __assign(__assign({}, this.defaultAttributes), this.attributes);
+        var combinedAttributes = __assign(__assign({}, this.defaultAttributes), this.attributes);
         this.indexes = {};
-        Object.entries(attributes)
+        Object.entries(combinedAttributes)
             .filter(function (_a) {
             var _ = _a[0], attribute = _a[1];
             return attribute.unique;
@@ -288,7 +296,6 @@ var Model = /** @class */ (function () {
                 }
             });
         });
-        this.length = this.records.length;
     };
     /**
      * convert the records to an array
@@ -301,6 +308,7 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.truncate = function () {
         this.records = [];
+        this.length = this.records.length;
         this.index();
     };
     /**

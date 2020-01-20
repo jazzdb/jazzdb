@@ -14,6 +14,10 @@ export interface IAttribute {
   };
 }
 
+export interface ICreateOpts {
+  skipIndexing: boolean;
+}
+
 export interface IModel {
   _id?: string;
   _createdAt?: number;
@@ -66,6 +70,7 @@ export class Model {
           });
         });
       }
+      this.length = this.records.length;
       this.index();
     }
   }
@@ -78,6 +83,7 @@ export class Model {
     const file = path.normalize(`${this.path}/${this.name}.json`);
     if (fs.existsSync(file)) {
       this.records = JSON.parse(await fs.readFile(file, 'utf8'));
+      this.length = this.records.length;
       this.index();
       return this;
     }
@@ -106,6 +112,7 @@ export class Model {
       }
     }
 
+    this.length = this.records.length;
     this.index();
 
     return this;
@@ -131,16 +138,16 @@ export class Model {
    * create one record
    * @param record one record
    */
-  create(record: any): any {
-    return this.createMany([record])[0];
+  create(record: any, opts?: ICreateOpts): any {
+    return this.createMany([record], opts)[0];
   }
 
   /**
    * create many records
    * @param records many records
    */
-  createMany(records: any[]): any[] {
-    const attributes = {
+  createMany(records: any[], opts?: ICreateOpts): any[] {
+    const combinedAttributes = {
       ...this.defaultAttributes,
       ...this.attributes
     };
@@ -152,7 +159,7 @@ export class Model {
     }));
 
     newRecords.forEach(newRecord => {
-      Object.entries(attributes).forEach(([attributeName, attribute]) => {
+      Object.entries(combinedAttributes).forEach(([attributeName, attribute]) => {
         if (
           attribute.required &&
           (newRecord[attributeName] === undefined || newRecord[attributeName] === null)
@@ -194,7 +201,10 @@ export class Model {
 
     this.records = this.records.concat(newRecords);
 
-    this.index();
+    this.length = this.records.length;
+    if (opts?.skipIndexing !== true) {
+      this.index();
+    }
 
     return newRecords;
   }
@@ -223,6 +233,7 @@ export class Model {
       })
       .filter(deletedItem => deletedItem !== undefined);
 
+    this.length = this.records.length;
     this.index();
 
     return deletedItems;
@@ -237,27 +248,25 @@ export class Model {
   }
 
   index() {
-    const attributes = {
+    const combinedAttributes = {
       ...this.defaultAttributes,
       ...this.attributes
     };
 
     this.indexes = {};
-    Object.entries(attributes)
+    Object.entries(combinedAttributes)
       .filter(([_, attribute]) => attribute.unique)
       .forEach(([attributeName]) => {
         this.indexes[attributeName] = {};
       });
 
-    this.records.forEach((record) => {
+    this.records.forEach(record => {
       Object.keys(this.indexes).forEach((attributeName: string) => {
         if (record[attributeName] !== undefined) {
           this.indexes[attributeName][record[attributeName]] = record._id;
         }
       });
     });
-
-    this.length = this.records.length;
   }
 
   /**
@@ -272,6 +281,7 @@ export class Model {
    */
   truncate() {
     this.records = [];
+    this.length = this.records.length;
     this.index();
   }
 
