@@ -220,9 +220,12 @@ var Model = /** @class */ (function () {
                 if (attribute.unique) {
                     var newValue = newRecord[attributeName];
                     if (newValue !== undefined) {
-                        if (_this.indexes[attributeName][newValue]) {
+                        if (_this.indexes[attributeName] && _this.indexes[attributeName][newValue]) {
                             var errorMessage = "Model (" + _this.name + ") Attribute (" + attributeName + ") is not unique: " + newValue;
                             throw new errors_1.UniqueJazzError(errorMessage);
+                        }
+                        if (!_this.indexes[attributeName]) {
+                            _this.indexes[attributeName] = {};
                         }
                         _this.indexes[attributeName][newValue] = newRecord._id;
                     }

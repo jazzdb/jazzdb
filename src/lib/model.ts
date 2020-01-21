@@ -189,9 +189,12 @@ export class Model {
         if (attribute.unique) {
           const newValue = newRecord[attributeName];
           if (newValue !== undefined) {
-            if (this.indexes[attributeName][newValue]) {
+            if (this.indexes[attributeName] && this.indexes[attributeName][newValue]) {
               const errorMessage = `Model (${this.name}) Attribute (${attributeName}) is not unique: ${newValue}`;
               throw new UniqueJazzError(errorMessage);
+            }
+            if (!this.indexes[attributeName]) {
+              this.indexes[attributeName] = {};
             }
             this.indexes[attributeName][newValue] = newRecord._id;
           }
