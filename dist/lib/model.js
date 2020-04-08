@@ -327,7 +327,11 @@ var Model = /** @class */ (function () {
         if (elementIndex === -1) {
             return;
         }
-        var updatedItem = __assign(__assign(__assign({}, this.records[elementIndex]), { _updatedAt: new Date().getTime() }), data);
+        var updatedItem = __assign(__assign({}, this.records[elementIndex]), data);
+        if (JSON.stringify(this.records[elementIndex]) === JSON.stringify(updatedItem)) {
+            return this.records[elementIndex];
+        }
+        updatedItem._updatedAt = new Date().getTime();
         this.records.splice(elementIndex, 1, updatedItem);
         return updatedItem;
     };

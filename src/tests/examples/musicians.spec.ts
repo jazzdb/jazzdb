@@ -64,8 +64,37 @@ describe('musicians', () => {
     assert.deepStrictEqual(updatedMusician, {
       _id: '00bce127-1bd9-4908-b630-ba079583bab9',
       _createdAt: 1546852885560,
+      _updatedAt: updatedMusician._updatedAt,
       name: 'Satchmo'
     });
+  });
+
+  it('should set _updatedAt for changed musician', async () => {
+    const updatedMusician1 = data.musicians.update('00bce127-1bd9-4908-b630-ba079583bab9', {
+      name: 'Satchmo'
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 250));
+
+    const updatedMusician2 = data.musicians.update('00bce127-1bd9-4908-b630-ba079583bab9', {
+      name: 'Test'
+    });
+
+    assert.notStrictEqual(updatedMusician1._updatedAt, updatedMusician2._updatedAt);
+  });
+
+  it('should set _updatedAt for changed musician', async () => {
+    const updatedMusician1 = data.musicians.update('00bce127-1bd9-4908-b630-ba079583bab9', {
+      name: 'Satchmo'
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 250));
+
+    const updatedMusician2 = data.musicians.update('00bce127-1bd9-4908-b630-ba079583bab9', {
+      name: 'Satchmo'
+    });
+
+    assert.strictEqual(updatedMusician1._updatedAt, updatedMusician2._updatedAt);
   });
 
   it('should sort musicians', () => {
