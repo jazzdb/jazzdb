@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as uuid from 'uuid';
 
 import { EnumJazzError, RequiredJazzError, TypeJazzError, UniqueJazzError } from '../errors';
+import { tmpdir } from 'os';
 
 export interface IAttribute {
   [name: string]: {
@@ -126,12 +127,24 @@ export class Model {
       throw new Error('Name is not configured.');
     }
 
+    const tmpFile = path.normalize(`${tmpdir()}/${this.name}.json`);
+    const tmpDir = path.dirname(tmpFile);
+    if (!fs.existsSync(tmpDir)) {
+      await fs.mkdirp(tmpDir);
+    }
+    
+    await fs.writeFile(tmpFile, JSON.stringify(this.records, null, 2));
+
     const file = path.normalize(`${this.path}/${this.name}.json`);
     const dir = path.dirname(file);
     if (!fs.existsSync(dir)) {
       await fs.mkdirp(dir);
     }
-    await fs.writeFile(file, JSON.stringify(this.records, null, 2));
+
+    if (fs.existsSync(file)) {
+      await fs.unlink(file);
+    }
+    await fs.move(tmpFile, file);
   }
 
   /**

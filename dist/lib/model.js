@@ -51,6 +51,7 @@ var fs = require("fs-extra");
 var path = require("path");
 var uuid = require("uuid");
 var errors_1 = require("../errors");
+var os_1 = require("os");
 var Model = /** @class */ (function () {
     function Model(opts) {
         var _this = this;
@@ -151,22 +152,38 @@ var Model = /** @class */ (function () {
      */
     Model.prototype.save = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var file, dir;
+            var tmpFile, tmpDir, file, dir;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!this.name) {
                             throw new Error('Name is not configured.');
                         }
-                        file = path.normalize(this.path + "/" + this.name + ".json");
-                        dir = path.dirname(file);
-                        if (!!fs.existsSync(dir)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, fs.mkdirp(dir)];
+                        tmpFile = path.normalize(os_1.tmpdir() + "/" + this.name + ".json");
+                        tmpDir = path.dirname(tmpFile);
+                        if (!!fs.existsSync(tmpDir)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, fs.mkdirp(tmpDir)];
                     case 1:
                         _a.sent();
                         _a.label = 2;
-                    case 2: return [4 /*yield*/, fs.writeFile(file, JSON.stringify(this.records, null, 2))];
+                    case 2: return [4 /*yield*/, fs.writeFile(tmpFile, JSON.stringify(this.records, null, 2))];
                     case 3:
+                        _a.sent();
+                        file = path.normalize(this.path + "/" + this.name + ".json");
+                        dir = path.dirname(file);
+                        if (!!fs.existsSync(dir)) return [3 /*break*/, 5];
+                        return [4 /*yield*/, fs.mkdirp(dir)];
+                    case 4:
+                        _a.sent();
+                        _a.label = 5;
+                    case 5:
+                        if (!fs.existsSync(file)) return [3 /*break*/, 7];
+                        return [4 /*yield*/, fs.unlink(file)];
+                    case 6:
+                        _a.sent();
+                        _a.label = 7;
+                    case 7: return [4 /*yield*/, fs.move(tmpFile, file)];
+                    case 8:
                         _a.sent();
                         return [2 /*return*/];
                 }
