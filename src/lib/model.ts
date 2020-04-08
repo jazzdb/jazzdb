@@ -302,9 +302,14 @@ export class Model {
 
     const updatedItem = {
       ...this.records[elementIndex],
-      _updatedAt: new Date().getTime(),
       ...data
     };
+
+    if (JSON.stringify(this.records[elementIndex]) === JSON.stringify(updatedItem)) {
+      return this.records[elementIndex];
+    }
+
+    updatedItem._updatedAt = new Date().getTime();
 
     this.records.splice(elementIndex, 1, updatedItem);
 
