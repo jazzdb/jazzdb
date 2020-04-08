@@ -302,6 +302,7 @@ export class Model {
 
     const updatedItem = {
       ...this.records[elementIndex],
+      _updatedAt: new Date().getTime(),
       ...data
     };
 
